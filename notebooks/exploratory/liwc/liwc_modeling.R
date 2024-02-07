@@ -6,40 +6,50 @@ library(dplyr)
 library(tidyverse)
 library(countrycode)
 library(lmtest)
-liwc_controls<-read.csv("data/interim/liwc_controls.csv")
+library(collapse)
+library(plm)
+liwc_df<-read.csv("data/interim/liwc_meta.csv")
 
-liwc_controls<-liwc_controls%>%
+liwc_df<-liwc_df%>%
   select(-X)%>%
   select(-session)%>%
   select(-ccode)%>%
   select(-gwcode)
 
-liwc_controls$year<-as.numeric(liwc_controls$year)
+liwc_df$year<-as.numeric(liwc_df$year)
 
-liwc_controls <- pdata.frame(liwc_controls, 
-                             index=c("ccode_iso","year"), 
+liwc_df <- pdata.frame(liwc_df,
+                             index=c("ccode_iso","year"),
                              drop.index=TRUE, row.names=TRUE)
 
-liwc_sov<-liwc_controls%>%
-  filter(grepl("sovereignty", text, ignore.case = TRUE))
+liwc_df<-liwc_df%>%
+  mutate(grepl("sovereignty", text, ignore.case = TRUE))
 
-model<-lm(risk~ v2x_polyarchy, data = liwc_sov)
+library(tidyverse)
 
-model0 <-plm(risk ~ dd_democracy + wdi_gdpcapcon2015 ,
-            data = liwc_sov,
+liwc_df <- liwc_df %>%
+  mutate(sovereignty = ifelse(str_detect(text, "sovereignty"), 1, 0),
+         intervention = ifelse(str_detect(text, "intervention"), 1, 0),
+         human_rights = ifelse(str_detect(text, "human rights"), 1, 0))
+
+
+
+## Modeling
+
+model0 <-plm( Authentic~ democracy + human_rights  ,
+            data = liwc_df,
+            index = c("ccode_iso", "year"),
             model = "within"
 )
 summary(model0, vcovBK(model0))
 
-model1 <-plm(emo_neg ~ dd_democracy + wdi_gdpcapcon2015 + cow_num_civil +
+model1 <-plm(emo_neg ~ sovereignty * democracy + wdi_gdpcapcon2015 + cow_num_civil +
                cow_num_inter + kofgi_dr_eg + v2x_libdem,
-             data = liwc_sov,
+             data = liwc_df,
+             index = c("ccode_iso", "year"),
              model = "within"
 )
 summary(model1, vcovBK(model1))
 
-liwc_long <- liwc_regime %>%
-  select("ccode_iso", "year", "health",
-         "ethnicity", "conflict", "tech", "relig", "illness", "democracy") %>%
-  pivot_longer(cols = -c(year, democracy, ccode_iso), names_to = "variable", values_to = "value")
+#an increase in sovereignty is associated with a decrease in emo_neg when democracy increases
 

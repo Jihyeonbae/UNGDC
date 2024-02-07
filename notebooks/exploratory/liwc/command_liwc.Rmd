@@ -1,0 +1,29 @@
+
+
+# Define shell type
+shellType <- "sh"
+
+# Define input and output file paths
+inputFileCSV <- "~/Desktop/UNGDC/data/processed/cleaned.csv"
+outputLocation <- "~/Desktop/UNGDC/data/liwc/analyzed.csv"
+
+# Expand the tilde to the full path
+inputFileCSV <- path.expand(inputFileCSV)
+outputLocation <- path.expand(outputLocation)
+
+# Define the row and column indices for analysis
+rowIndices <- c(1, 2, 3)
+columnIndices <- 4
+
+# Construct the command
+cmd_to_execute <- paste("LIWC-22-cli",
+                        "--mode", "wc",
+                        "--row-id-indices", paste(rowIndices, collapse = ","),
+                        "--column-indices", columnIndices,
+                        "--input", shQuote(inputFileCSV, type = shellType),
+                        "--output", shQuote(outputLocation, type = shellType),
+                        sep = ' ')
+
+# Execute the command
+system(cmd_to_execute, intern = FALSE, wait = TRUE)
+
