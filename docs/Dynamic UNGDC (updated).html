@@ -96,10 +96,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This version <em>does</em> use tf-idf for LDA analysis. For the older version, refer to <code>UNGDC_topic_modeling.qmd</code>. I created a separate version for two reasons. First, some of the functions and options deprecated from the <code>quanteda</code> R package. Earlier version might not be reproducible. Second, the inclusion of tf-idf to generate LDA analysis has a tradeoff. Since it gives less weights to terms that appear frequently across the documents, by definition, tf-idf lowers the correlation between terms over different time window. It is harder to notice a clear linkage between two topics represented by different terms. However, unlike the earlier version that excludes tf-idf, topics are more specific, and substantively meaningful.</p>
-<ul>
-<li>TO DO: Reduce the number of topics from 10 to 5. Tf-idf increased the between-document variation and relatively decreased the commonality across the documents. It became harder to find a common topic, and it reducing the number of topics might help. I also need to implement moving window to produce a smoother transition of topics over time.</li>
-</ul>
+<p>This version <em>does</em> use tf-idf for LDA analysis. It also includes updated options from the <code>quanteda</code> R package.</p>
 <section id="dynamic-topic-modeling-for-ungdc" class="level2">
 <h2 class="anchored" data-anchor-id="dynamic-topic-modeling-for-ungdc">Dynamic Topic Modeling for UNGDC</h2>
 <p>In order to generate LDA topic modeling results for the corpus of UNGD, I split the corpus into different time frames. The entire time span of 1945 until 2022 is split into 8 intervals, with a duration of 10 years.</p>
@@ -182,15 +179,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="lda-topic-modeling" class="level1">
 <h1>LDA Topic Modeling</h1>
 <ul>
-<li><p>In this section, I perform topic modeling using LDA, an unsupervised method to estimate vectors that represent topics within a speech.It assumes that each speech document is a mixture of topics, and each word is attributable to one of the document’s topics.</p></li>
-<li><p>Current parameters in the below code sets the number of topics as 10, and uses the TF-IDF scores.</p></li>
+<li><p>In this section, I perform topic modeling using LDA, an unsupervised method to estimate vectors that represent topics within a speech.It assumes that each speech doument is a mixture of topics, and each word is attributable to one of the document’s topics.</p></li>
+<li><p>Current parameters in the below code sets the number of topics as 5, and uses the TF-IDF scores.</p></li>
 </ul>
 </section>
 <section id="lda-generator-updated-function" class="level1">
 <h1>LDA Generator Updated Function</h1>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## New version since dfm() options deprecated within the quanteda package.</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">10</span>) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">5</span>) {</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"output/lda/decade_0203"</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
@@ -1111,3 +1108,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 </body></html>
+<script>window.backupDefine = window.define; window.define = undefined;</script>
+<script type="text/javascript" src="quarto-preview.js"></script>
+<script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
+<script type="text/javascript">
+  const options = {
+    origin: "http://localhost:3201",
+    search: "?capabilities=1&amp;host=http%3A%2F%2F127.0.0.1%3A9259",
+    inputFile: "/Users/jihyeonbae/Desktop/UNGDC/docs/UNGDC_topic_modeling_updated.qmd",
+    isPresentation: false
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    window.QuartoPreview.init(options);
+  });
+</script>
