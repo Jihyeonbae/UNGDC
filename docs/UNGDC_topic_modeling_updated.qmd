@@ -1,16 +1,14 @@
 ---
-title: "Dynamic UNGDC (old version)"
+title: "Dynamic UNGDC (updated)"
 format: html
 editor: visual
 execute:
   warning: false
 
 ---
-## Introduction
 
-- This version *does not* use tf-idf for LDA analysis. This code reproduces topic modeling results same as `output/lda/decade_0120`. Given generic characteristics of terms across different time windows, this version shows a clearer pipeline with high level of correlation between topics that overlap over time. There might be limitation in less substantively meaningful topics, due to recurrent terms. 
-- Despite its limitation, this script provides a useful step to weave through overlapping topics represented by different terms over multiple time periods.
-- It also includes lots of deprecated options from the `quanteda` R package. 
+This version *does* use tf-idf for LDA analysis. 
+It also includes updated options from the `quanteda` R package. 
 
 ## Dynamic Topic Modeling for UNGDC
 
@@ -40,6 +38,12 @@ light_interval <- light %>%
                                      breaks = c(seq(from = 1945, to = 2022, by = 10), 2022)))) %>%
   dplyr::arrange(year)
 
+
+# I added two additional stop words that aren't captured in the generic stop words dictionary. 
+
+mystopwords <- c("will", "must")
+custom_stopwords <- c(stopwords("english"), mystopwords)
+
 ```
 
 ## Term Frequency-Inverse Matrix and Descriptive Data Visualization
@@ -49,11 +53,6 @@ light_interval <- light %>%
 
 ```{r}
 #| eval =FALSE
-
-# I added two additional stop words that aren't captured in the generic stop words dictionary. 
-
-mystopwords <- c("will", "must")
-custom_stopwords <- c(stopwords("english"), mystopwords)
 
 # Function for generating tf_idf and plots.
 sapply(levels(light_interval$span), function(i) {
@@ -97,38 +96,41 @@ sapply(levels(light_interval$span), function(i) {
 
 -   In this section, I perform topic modeling using LDA, an unsupervised method to estimate vectors that represent topics within a speech.It assumes that each speech doument is a mixture of topics, and each word is attributable to one of the document's topics.
 
--   Current parameters in the below code sets the number of topics as 10.
+-   Current parameters in the below code sets the number of topics as 5, and uses the TF-IDF scores.
 
+
+# LDA Generator Updated Function
 ```{r}
-#Topic Modeling
-mystopwords <- c("will", "must")
-custom_stopwords <- c(stopwords("english"), mystopwords)
 
-#deprecated one. Use only for replication purpose. 
-lda_generator <- function(corpus, span_levels, num_topics = 10) {
-  output_dir <- "output/lda/decade_0120_replicated_0206"
+## New version since dfm() options deprecated within the quanteda package.
+lda_generator <- function(corpus, span_levels, num_topics = 5) {
+  output_dir <- "output/lda/decade_0203"
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
-  
   for (i in span_levels) {
     subset <- corpus[corpus$span == i, ]
-    subset_dfm <- dfm(subset$text,
-                      remove_numbers = TRUE,
-                      split_hyphens = TRUE,
-                      stem = TRUE,
-                      remove_punct = TRUE,
-                      tolower = TRUE,
-                      remove = custom_stopwords)
-    dfm_idf <- dfm_tfidf(subset_dfm)
+    
+    # Use tokens() instead of dfm() for tokenization
+    subset_tokens <- tokens(subset$text,
+                            remove_numbers = TRUE,
+                            remove_punct = TRUE,
+                            split_hyphens = TRUE) %>%
+                    tokens_wordstem() %>%
+                    tokens_tolower() %>%
+                    tokens_remove(pattern = custom_stopwords) %>%
+                    tokens_compound(pattern = phrase(c("human rights*", "united nations")))
+    
+    # Apply TF-IDF transformation directly on tokens
+    subset_tfidf <- dfm(subset_tokens) %>%
+                     dfm_tfidf(scheme_tf = "count", scheme_df = "inverse")
 
-    timing <- system.time({
-      dfm_df <- convert(dfm_idf, to = "data.frame")
+     timing <- system.time({
       dfm_output_file <- file.path(output_dir, paste0("dfm_", i, ".RDS"))
-      saveRDS(dfm_df, dfm_output_file)
+      saveRDS(convert(subset_tfidf, to="data.frame"), dfm_output_file)
 
-      tmod_lda <- textmodel_lda(subset_dfm, k = num_topics)
+      tmod_lda <- textmodel_lda(subset_tfidf, k = num_topics)
       lda_output_file <- file.path(output_dir, paste0("lda_model_", i, ".RDS"))
       saveRDS(tmod_lda, lda_output_file)
     })
@@ -136,14 +138,11 @@ lda_generator <- function(corpus, span_levels, num_topics = 10) {
     cat(sprintf("Time taken for %s: %s seconds\n", i, timing[3]))
   }
 }
-```
-
-
-```{r}
+  
 
 # Loop through each decade and save separate LDA results. 
 span_levels <- levels(light_interval$span)
-lda_generator(light_interval, span_levels)
+#lda_generator(light_interval, span_levels)
 
 ```
 
@@ -153,7 +152,8 @@ After running the LDA model, I read in each LDA results as a separate element in
 
 ```{r}
 
-read_lda_models <- function(span_levels, output_dir = "output/lda/decade_0120_replicated_0206") {
+
+read_lda_models <- function(span_levels, output_dir = "../output/lda/decade_0120_replicate") {
   lda_models <- list()
 
   for (i in span_levels) {
@@ -172,6 +172,7 @@ read_lda_models <- function(span_levels, output_dir = "output/lda/decade_0120_re
 }
 
 
+output_directory <- "../output/lda/decade_0120_replicate"
 
 lda_models <- read_lda_models(span_levels, output_directory)
 
@@ -405,19 +406,19 @@ for (i in 1:(length(lda_models) - 1)) {
   model1 <- lda_models[[i]]
   model2 <- lda_models[[i + 1]]
 
-  result <- generate_heatmap(model1, model2, correlation_threshold = 0.9)
+  result <- generate_heatmap(model1, model2, correlation_threshold = 0.5)
   
   phi1_union <- result$phi1_union
   phi2_union <- result$phi2_union
   cor_matrix <- result$cor_matrix
 
   # Print ordered rows only if there are high correlations
-  if (any(cor_matrix > 0.9, na.rm = TRUE)) {
+  if (any(cor_matrix > 0.5, na.rm = TRUE)) {
     phi1_result <- phi1_union[, order(colMeans(phi1_union), decreasing = TRUE)]
     phi2_result <- phi2_union[, order(colMeans(phi2_union), decreasing = TRUE)]
 
     # Call the modified function and pass high_corr_indices as an argument
-    final_result <- print_ordered_rows(phi1_result, phi2_result, cor_matrix, high_corr_indices, correlation_threshold = 0.9)
+    final_result <- print_ordered_rows(phi1_result, phi2_result, cor_matrix, high_corr_indices, correlation_threshold = 0.5)
     print(final_result)
   }
 }

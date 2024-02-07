@@ -1,4 +1,6 @@
 # BERT topic modeling
+
+BERT tokenizes not conventional words, but wordpieces. Less frequentlly used words are therefore split into pieces. 
 	
 ## bert.ipynb
 	
@@ -51,8 +53,9 @@
 - `from sklearn.feature_extraction.text import CountVectorizer`
 - `vectorizer_model = CountVectorizer(ngram_range=(1, 3), stop_words="english")`
 - `topic_model.update_topics(docs, vectorizer_model=vectorizer_model)
-`
+
 - changed the minimum document frequency from 5 to 10. 
+- When the document frequency floor was 5, the results were too specific. 
 	 
 # Questions
 ## Document length

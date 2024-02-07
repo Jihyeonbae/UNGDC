@@ -133,40 +133,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I added two additional stop words that aren't captured in the generic stop words dictionary. </span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>mystopwords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"will"</span>, <span class="st">"must"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Function for generating tf_idf and plots.</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(<span class="fu">levels</span>(light_interval<span class="sc">$</span>span), <span class="cf">function</span>(i) {</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  subset_i <span class="ot">&lt;-</span> light_interval <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(span <span class="sc">%in%</span> i)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  corpus_subset <span class="ot">&lt;-</span> <span class="fu">Corpus</span>(<span class="fu">VectorSource</span>(subset_i<span class="sc">$</span>text))</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  tdm <span class="ot">&lt;-</span> <span class="fu">TermDocumentMatrix</span>(corpus_subset,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                            <span class="at">control =</span> <span class="fu">list</span>(<span class="at">weighting =</span> weightTfIdf,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removePunctuation =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">stemming =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removeNumbers =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">stopwords =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removewords =</span> mystopwords))</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  top_terms <span class="ot">&lt;-</span> slam<span class="sc">::</span><span class="fu">row_sums</span>(<span class="fu">as.matrix</span>(tdm))</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create a data frame with terms and tfidf values</span></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">term =</span> <span class="fu">names</span>(top_terms), <span class="at">tfidf =</span> top_terms)</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Order the terms by tfidf value</span></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> top_terms_df[<span class="fu">order</span>(top_terms_df<span class="sc">$</span>tfidf, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ]</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Select the top 20 terms</span></span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> <span class="fu">head</span>(top_terms_df, <span class="dv">20</span>)</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  figure_i <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(top_terms_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(term, tfidf), <span class="at">y =</span> tfidf)) <span class="sc">+</span></span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"skyblue"</span>) <span class="sc">+</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Top 20 Terms by TF-IDF"</span>,</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Terms"</span>,</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"TF-IDF Score"</span>) <span class="sc">+</span></span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"figs/"</span>, <span class="fu">paste0</span>(<span class="st">"plot_"</span>, i, <span class="st">".png"</span>))</span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(output_file, figure_i, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">5</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>custom_stopwords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">stopwords</span>(<span class="st">"english"</span>), mystopwords)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Function for generating tf_idf and plots.</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">sapply</span>(<span class="fu">levels</span>(light_interval<span class="sc">$</span>span), <span class="cf">function</span>(i) {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  subset_i <span class="ot">&lt;-</span> light_interval <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">filter</span>(span <span class="sc">%in%</span> i)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  corpus_subset <span class="ot">&lt;-</span> <span class="fu">Corpus</span>(<span class="fu">VectorSource</span>(subset_i<span class="sc">$</span>text))</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  tdm <span class="ot">&lt;-</span> <span class="fu">TermDocumentMatrix</span>(corpus_subset,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                            <span class="at">control =</span> <span class="fu">list</span>(<span class="at">weighting =</span> weightTfIdf,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removePunctuation =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">stemming =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removeNumbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">stopwords =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>                                           <span class="at">removewords =</span> mystopwords))</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  top_terms <span class="ot">&lt;-</span> slam<span class="sc">::</span><span class="fu">row_sums</span>(<span class="fu">as.matrix</span>(tdm))</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create a data frame with terms and tfidf values</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">term =</span> <span class="fu">names</span>(top_terms), <span class="at">tfidf =</span> top_terms)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Order the terms by tfidf value</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> top_terms_df[<span class="fu">order</span>(top_terms_df<span class="sc">$</span>tfidf, <span class="at">decreasing =</span> <span class="cn">TRUE</span>), ]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Select the top 20 terms</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>  top_terms_df <span class="ot">&lt;-</span> <span class="fu">head</span>(top_terms_df, <span class="dv">20</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  figure_i <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(top_terms_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(term, tfidf), <span class="at">y =</span> tfidf)) <span class="sc">+</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"skyblue"</span>) <span class="sc">+</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Top 20 Terms by TF-IDF"</span>,</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> <span class="st">"Terms"</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="st">"TF-IDF Score"</span>) <span class="sc">+</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>  output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"figs/"</span>, <span class="fu">paste0</span>(<span class="st">"plot_"</span>, i, <span class="st">".png"</span>))</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggsave</span>(output_file, figure_i, <span class="at">width =</span> <span class="dv">8</span>, <span class="at">height =</span> <span class="dv">5</span>, <span class="at">units =</span> <span class="st">"in"</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#print out one sample</span></span>
@@ -191,49 +192,90 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Topic Modeling</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">10</span>) {</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"output/lda/decade_0203"</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> span_levels) {</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    subset <span class="ot">&lt;-</span> corpus[corpus<span class="sc">$</span>span <span class="sc">==</span> i, ]</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    subset_dfm <span class="ot">&lt;-</span> <span class="fu">dfm</span>(subset<span class="sc">$</span>text,</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>                      <span class="at">split_hyphens =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                      <span class="at">stem =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                      <span class="at">tolower =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove =</span> <span class="fu">stopwords</span>(<span class="st">"english"</span>))</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    dfm_idf <span class="ot">&lt;-</span> <span class="fu">dfm_tfidf</span>(subset_dfm,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_tf =</span> <span class="st">"count"</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_df =</span> <span class="st">"inverse"</span>)</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    timing <span class="ot">&lt;-</span> <span class="fu">system.time</span>({</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>      dfm_df <span class="ot">&lt;-</span> <span class="fu">convert</span>(dfm_idf, <span class="at">to =</span> <span class="st">"data.frame"</span>)</span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>      dfm_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"dfm_"</span>, i, <span class="st">".RDS"</span>))</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(dfm_df, dfm_output_file)</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>      tmod_lda <span class="ot">&lt;-</span> <span class="fu">textmodel_lda</span>(subset_dfm, <span class="at">k =</span> num_topics)</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      lda_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"lda_model_"</span>, i, <span class="st">".RDS"</span>))</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(tmod_lda, lda_output_file)</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    })</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Time taken for %s: %s seconds</span><span class="sc">\n</span><span class="st">"</span>, i, timing[<span class="dv">3</span>]))</span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through each decade and save separate LDA results. </span></span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>span_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(light_interval<span class="sc">$</span>span)</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="co">#lda_generator(light_interval, span_levels)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>mystopwords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"will"</span>, <span class="st">"must"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>custom_stopwords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">stopwords</span>(<span class="st">"english"</span>), mystopwords)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">10</span>) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"~/Desktop/UNGDC/output/lda/decade_0203"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> span_levels) {</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    subset <span class="ot">&lt;-</span> corpus[corpus<span class="sc">$</span>span <span class="sc">==</span> i, ]</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    subset_dfm <span class="ot">&lt;-</span> <span class="fu">dfm</span>(subset<span class="sc">$</span>text,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>                      <span class="at">split_hyphens =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>                      <span class="at">stem =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>                      <span class="at">tolower =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>                      <span class="at">remove =</span> custom_stopwords)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    dfm_idf <span class="ot">&lt;-</span> <span class="fu">dfm_tfidf</span>(subset_dfm,</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_tf =</span> <span class="st">"count"</span>,</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_df =</span> <span class="st">"inverse"</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    timing <span class="ot">&lt;-</span> <span class="fu">system.time</span>({</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>      dfm_df <span class="ot">&lt;-</span> <span class="fu">convert</span>(dfm_idf, <span class="at">to =</span> <span class="st">"data.frame"</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>      dfm_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"dfm_"</span>, i, <span class="st">".RDS"</span>))</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(dfm_df, dfm_output_file)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      tmod_lda <span class="ot">&lt;-</span> <span class="fu">textmodel_lda</span>(subset_dfm, <span class="at">k =</span> num_topics)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>      lda_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"lda_model_"</span>, i, <span class="st">".RDS"</span>))</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(tmod_lda, lda_output_file)</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Time taken for %s: %s seconds</span><span class="sc">\n</span><span class="st">"</span>, i, timing[<span class="dv">3</span>]))</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a><span class="do">## New version since dfm() options deprecated within the quanteda package.</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">10</span>) {</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"output/lda/decade_0203"</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> span_levels) {</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    subset <span class="ot">&lt;-</span> corpus[corpus<span class="sc">$</span>span <span class="sc">==</span> i, ]</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Use tokens() instead of dfm() for tokenization</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>    subset_tokens <span class="ot">&lt;-</span> <span class="fu">tokens</span>(subset<span class="sc">$</span>text,</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>                            <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>                            <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>                            <span class="at">split_hyphens =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">tokens_wordstem</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">tokens_tolower</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">tokens_remove</span>(<span class="at">pattern =</span> custom_stopwords) <span class="sc">%&gt;%</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">tokens_compound</span>(<span class="at">pattern =</span> <span class="fu">phrase</span>(<span class="fu">c</span>(<span class="st">"human rights*"</span>, <span class="st">"united nations"</span>)))</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply TF-IDF transformation directly on tokens</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    subset_tfidf <span class="ot">&lt;-</span> <span class="fu">dfm</span>(subset_tokens) <span class="sc">%&gt;%</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>                     <span class="fu">dfm_tfidf</span>(<span class="at">scheme_tf =</span> <span class="st">"count"</span>, <span class="at">scheme_df =</span> <span class="st">"inverse"</span>)</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>     timing <span class="ot">&lt;-</span> <span class="fu">system.time</span>({</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>      dfm_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"dfm_"</span>, i, <span class="st">".RDS"</span>))</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(<span class="fu">convert</span>(subset_tfidf, <span class="at">to=</span><span class="st">"data.frame"</span>), dfm_output_file)</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>      tmod_lda <span class="ot">&lt;-</span> <span class="fu">textmodel_lda</span>(subset_tfidf, <span class="at">k =</span> num_topics)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>      lda_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"lda_model_"</span>, i, <span class="st">".RDS"</span>))</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>      <span class="fu">saveRDS</span>(tmod_lda, lda_output_file)</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>    })</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"Time taken for %s: %s seconds</span><span class="sc">\n</span><span class="st">"</span>, i, timing[<span class="dv">3</span>]))</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop through each decade and save separate LDA results. </span></span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>span_levels <span class="ot">&lt;-</span> <span class="fu">levels</span>(light_interval<span class="sc">$</span>span)</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="co">#lda_generator(light_interval, span_levels)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="reading-in-lda-results" class="level2">
 <h2 class="anchored" data-anchor-id="reading-in-lda-results">Reading in LDA results</h2>
 <p>After running the LDA model, I read in each LDA results as a separate element in a list form. Below code prins out top 10 terms associated with each topic in the LDA models for different span levels. Each row represents one semantic topic.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>read_lda_models <span class="ot">&lt;-</span> <span class="cf">function</span>(span_levels, <span class="at">output_dir =</span> <span class="st">"output/lda/decade_0120"</span>) {</span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>read_lda_models <span class="ot">&lt;-</span> <span class="cf">function</span>(span_levels, <span class="at">output_dir =</span> <span class="st">"~/Desktop/UNGDC/output/lda/decade_0203"</span>) {</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  lda_models <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> span_levels) {</span>
@@ -252,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>output_directory <span class="ot">&lt;-</span> <span class="st">"~/Desktop/UNGDC/output/lda/decade_0120"</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>output_directory <span class="ot">&lt;-</span> <span class="st">"~/Desktop/UNGDC/output/lda/decade_0203"</span></span>
 <span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>lda_models <span class="ot">&lt;-</span> <span class="fu">read_lda_models</span>(span_levels, output_directory)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -285,251 +327,92 @@ LDA model for (2015,2022] successfully loaded.</code></pre>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>topic_tables <span class="ot">&lt;-</span> <span class="fu">topic_tables</span>(lda_models, span_levels)</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(topic_tables)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(knitr<span class="sc">::</span><span class="fu">kable</span>(topic_tables))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>               Terms.topic1 Terms.topic2 Terms.topic3 Terms.topic4 Terms.topic5
-(1945,1955].1        econom        korea        state         arab         will
-(1945,1955].2       countri    communist         unit       israel           us
-(1945,1955].3       develop      aggress          war     palestin          can
-(1945,1955].4        social       soviet       soviet        right          one
-(1945,1955].5       product       chines         peac       refuge        world
-(1945,1955].6       technic        peopl        union         east          may
-(1945,1955].7      industri        china         atom        franc         must
-(1945,1955].8      programm       korean       propos        egypt          say
-(1945,1955].9      american         peac        peopl        peopl          now
-(1945,1955].10        trade         year       polici        state         time
-(1955,1965].1        nation         arab       nation         viet         unit
-(1955,1965].2          unit       israel        world        india          one
-(1955,1965].3        intern     palestin        peopl          nam      assembl
-(1955,1965].4          peac        franc         will          lao       nation
-(1955,1965].5          will         unit           us        china       govern
-(1955,1965].6       countri     algerian         peac    communist         will
-(1955,1965].7       general         east         must        south        state
-(1955,1965].8         world        middl          one     pakistan      countri
-(1955,1965].9       develop      algeria          can         asia          say
-(1955,1965].10      problem       french      countri       chines         time
-(1965,1975].1        intern        state       nation       africa        state
-(1965,1975].2        nation         unit         will      african       intern
-(1965,1975].3       countri        peopl         year        south       nation
-(1965,1975].4          will         peac         unit        peopl       govern
-(1965,1975].5       develop       republ          new       govern        latin
-(1965,1975].6         world       intern         issu         unit     american
-(1965,1975].7          peac       soviet          can       coloni     principl
-(1965,1975].8        econom       nation        world      countri          law
-(1965,1975].9          unit        secur          now       nation          sea
-(1965,1975].10        peopl      countri        power     independ      america
-(1975,1985].1        govern        peopl       govern        state       intern
-(1975,1985].2          unit      countri      america      nuclear      countri
-(1975,1985].3          will      struggl     american       weapon         peac
-(1975,1985].4        nation     independ        state         peac       nation
-(1975,1985].5          must         unit      countri       soviet         unit
-(1975,1985].6       nuclear      aggress        latin         unit      develop
-(1975,1985].7         human  imperialist      central        peopl        secur
-(1975,1985].8         right      support        polit       republ       region
-(1975,1985].9         south    kampuchea       panama          arm        state
-(1975,1985].10       negoti       nation        peopl        union       effort
-(1985,1995].1       develop        world       nation      countri         unit
-(1985,1995].2        nation         will        peopl       africa       nation
-(1985,1995].3       countri       nation      countri      african        state
-(1985,1995].4          unit        peopl         peac        peopl         must
-(1985,1995].5         south           us         unit       govern         peac
-(1985,1995].6         state          can        south         peac      nuclear
-(1985,1995].7       continu          one      nuclear        south       weapon
-(1985,1995].8        govern         must       govern        organ        secur
-(1985,1995].9        global          new        state       nation        organ
-(1985,1995].10       econom          war  afghanistan        state         oper
-(1995,2005].1        nation       nation       nation        state       intern
-(1995,2005].2        intern        world         unit         unit      countri
-(1995,2005].3        region         must       intern       nation      develop
-(1995,2005].4       countri           us        secur      council        world
-(1995,2005].5          unit         unit      develop       intern         will
-(1995,2005].6        cooper         will      general        secur         peac
-(1995,2005].7          peac          can        human      countri       econom
-(1995,2005].8        republ          new        right        power       nation
-(1995,2005].9          will        human       reform        right        organ
-(1995,2005].10        state          one      council        peopl       social
-(2005,2015].1        intern      countri       nation       region       nation
-(2005,2015].2          peac        peopl      african     european         unit
-(2005,2015].3         state        state       africa       intern       intern
-(2005,2015].4         peopl         unit         peac      countri      develop
-(2005,2015].5         secur       govern         unit  afghanistan        secur
-(2005,2015].6   palestinian        human        secur        union        human
-(2005,2015].7       countri       presid      countri        state        right
-(2005,2015].8        region        world      general        europ         peac
-(2005,2015].9          arab       nation      assembl        secur         will
-(2005,2015].10         will        right       govern       cooper        state
-(2015,2022].1        intern      african       pandem         will      countri
-(2015,2022].2      european      countri        covid        world        state
-(2015,2022].3         secur       nation       presid           us        peopl
-(2015,2022].4        ukrain         peac           mr         must       govern
-(2015,2022].5         state       africa       global       nation         unit
-(2015,2022].6       countri        secur       vaccin        peopl       intern
-(2015,2022].7           war         unit       health          can        right
-(2015,2022].8         union       govern           un          one        human
-(2015,2022].9         right       republ         need         unit       social
-(2015,2022].10    territori        state        world         year         peac
-               Terms.topic6 Terms.topic7 Terms.topic8 Terms.topic9
-(1945,1955].1        nation        human      council       confer
-(1945,1955].2          unit        peopl      assembl       govern
-(1945,1955].3          peac      freedom      charter      problem
-(1945,1955].4        intern         peac        secur        peopl
-(1945,1955].5         world        right       member        india
-(1945,1955].6          will        world        state         asia
-(1945,1955].7         state        power      general       geneva
-(1945,1955].8         organ       justic         veto        south
-(1945,1955].9       problem          war        power         atom
-(1945,1955].10      general          men         unit     question
-(1955,1965].1       countri        state      nuclear       africa
-(1955,1965].2       develop         unit      disarma      african
-(1955,1965].3        econom        peopl         test        south
-(1955,1965].4      industri         peac       weapon       govern
-(1955,1965].5       product      countri    agreement       coloni
-(1955,1965].6        social       republ        power        peopl
-(1955,1965].7          year       soviet       soviet        state
-(1955,1965].8       economi       govern       negoti     independ
-(1955,1965].9       resourc          war      control       republ
-(1955,1965].10        price      general         unit    territori
-(1965,1975].1       countri       israel        peopl        world
-(1965,1975].2       develop         arab         unit           us
-(1965,1975].3        econom         unit         viet         will
-(1965,1975].4       product        peopl        state          one
-(1965,1975].5      industri        state      countri          can
-(1965,1975].6           per    territori          nam       nation
-(1965,1975].7         trade      resolut      struggl      countri
-(1965,1975].8         price         peac      aggress         must
-(1965,1975].9         world        secur  imperialist        great
-(1965,1975].10         cent       nation       republ        power
-(1975,1985].1        africa         arab       intern        world
-(1975,1985].2         peopl       israel       nation       nation
-(1975,1985].3       african        state      countri         will
-(1975,1985].4         south  palestinian      develop           us
-(1975,1985].5        govern         unit         peac          one
-(1975,1985].6         regim        peopl         will          can
-(1975,1985].7        republ         peac         unit         must
-(1975,1985].8         state      resolut       econom      countri
-(1975,1985].9       namibia      aggress        right        peopl
-(1975,1985].10      struggl        secur      general        human
-(1985,1995].1         state       intern      countri        state
-(1985,1995].2         europ      develop       govern       intern
-(1985,1995].3      european      countri        state        secur
-(1985,1995].4          unit         peac       intern        peopl
-(1985,1995].5        nation        world      america         unit
-(1985,1995].6        republ       nation     american      resolut
-(1985,1995].7         secur         will        peopl         arab
-(1985,1995].8         polit       econom      central         peac
-(1985,1995].9        intern      problem       social      countri
-(1985,1995].10      countri           co        latin      council
-(1995,2005].1       develop         peac      countri         unit
-(1995,2005].2       countri       intern         peac       nation
-(1995,2005].3        nation        secur       africa        secur
-(1995,2005].4         state       region      african       intern
-(1995,2005].5        island        peopl      develop       terror
-(1995,2005].6        econom  palestinian       intern         must
-(1995,2005].7         small        state       govern      develop
-(1995,2005].8        global         will    communiti         will
-(1995,2005].9          unit         arab       nation      council
-(1995,2005].10       intern       israel     conflict      general
-(2005,2015].1       develop      develop      countri        world
-(2005,2015].2        island      countri       intern         will
-(2005,2015].3        nation       global         peac         must
-(2005,2015].4         state        world      african       nation
-(2005,2015].5         small       econom        secur        peopl
-(2005,2015].6          unit        chang        state           us
-(2005,2015].7        climat       intern      general          can
-(2005,2015].8         chang       climat    communiti         unit
-(2005,2015].9         pacif         will       nation         year
-(2005,2015].10      continu        crisi       republ          one
-(2015,2022].1       develop         unit       intern       nation
-(2015,2022].2       countri       nation        state      develop
-(2015,2022].3           per         peac        peopl       intern
-(2015,2022].4          cent        state      countri         unit
-(2015,2022].5        climat       intern        secur      sustain
-(2015,2022].6          year      countri         peac         peac
-(2015,2022].7          educ         will       terror        secur
-(2015,2022].8        govern      develop       region         will
-(2015,2022].9        energi        korea  palestinian         also
-(2015,2022].10      economi      nuclear       nation        human
-               Terms.topic10
-(1945,1955].1        countri
-(1945,1955].2         govern
-(1945,1955].3          greec
-(1945,1955].4            war
-(1945,1955].5          peopl
-(1945,1955].6     yugoslavia
-(1945,1955].7          greek
-(1945,1955].8             mr
-(1945,1955].9        germani
-(1945,1955].10      question
-(1955,1965].1       american
-(1955,1965].2          state
-(1955,1965].3        america
-(1955,1965].4          latin
-(1955,1965].5         govern
-(1955,1965].6          peopl
-(1955,1965].7          right
-(1955,1965].8         system
-(1955,1965].9        respect
-(1955,1965].10        intern
-(1965,1975].1         nation
-(1965,1975].2           unit
-(1965,1975].3        develop
-(1965,1975].4           peac
-(1965,1975].5         intern
-(1965,1975].6           will
-(1965,1975].7        general
-(1965,1975].8        countri
-(1965,1975].9        problem
-(1965,1975].10         world
-(1975,1985].1        develop
-(1975,1985].2        countri
-(1975,1985].3         econom
-(1975,1985].4          world
-(1975,1985].5         nation
-(1975,1985].6         intern
-(1975,1985].7          south
-(1975,1985].8        continu
-(1975,1985].9        resourc
-(1975,1985].10          issu
-(1985,1995].1         intern
-(1985,1995].2        develop
-(1985,1995].3         nation
-(1985,1995].4           peac
-(1985,1995].5          world
-(1985,1995].6           unit
-(1985,1995].7           will
-(1985,1995].8        countri
-(1985,1995].9         econom
-(1985,1995].10           new
-(1995,2005].1          peopl
-(1995,2005].2        countri
-(1995,2005].3         terror
-(1995,2005].4       children
-(1995,2005].5          world
-(1995,2005].6    afghanistan
-(1995,2005].7           year
-(1995,2005].8           will
-(1995,2005].9      terrorist
-(1995,2005].10        govern
-(2005,2015].1        develop
-(2005,2015].2         govern
-(2005,2015].3          peopl
-(2005,2015].4           year
-(2005,2015].5           will
-(2005,2015].6         nation
-(2005,2015].7         agenda
-(2005,2015].8           goal
-(2005,2015].9        sustain
-(2005,2015].10       countri
-(2015,2022].1         nation
-(2015,2022].2         island
-(2015,2022].3         climat
-(2015,2022].4        develop
-(2015,2022].5          state
-(2015,2022].6          chang
-(2015,2022].7           unit
-(2015,2022].8          small
-(2015,2022].9          ocean
-(2015,2022].10         peopl</code></pre>
+<pre><code>
+
+|               |Terms.topic1  |Terms.topic2  |Terms.topic3 |Terms.topic4 |Terms.topic5 |Terms.topic6  |Terms.topic7 |Terms.topic8 |Terms.topic9 |Terms.topic10 |
+|:--------------|:-------------|:-------------|:------------|:------------|:------------|:-------------|:------------|:------------|:------------|:-------------|
+|(1945,1955].1  |bolivia       |tunisia       |veto         |soviet       |greek        |resumpt       |soviet       |india        |arab         |yugoslav      |
+|(1945,1955].2  |communist     |dominican     |council      |communist    |greec        |armistic      |ussr         |hyderabad    |israel       |czechoslovak  |
+|(1945,1955].3  |cuba          |morocco       |zealand      |union        |chile        |korea         |atom         |geneva       |palestin     |german        |
+|(1945,1955].4  |chines        |franc         |netherland   |vyshinski    |uruguay      |collect       |weapon       |south        |egypt        |polish        |
+|(1945,1955].5  |bolivian      |french        |court        |korea        |panama       |issu          |prohibit     |africa       |jerusalem    |yugoslavia    |
+|(1945,1955].6  |colombia      |imprison      |vote         |canadian     |guerrilla    |uniti         |armament     |african      |egyptian     |germani       |
+|(1945,1955].7  |costa         |tunisian      |arbitr       |can          |greece’      |europ         |union        |asian        |jew          |soviet        |
+|(1945,1955].8  |trade         |philippin     |el           |disarma      |tsaldari     |intervent     |american     |bandung      |refuge       |poland        |
+|(1945,1955].9  |latin         |court         |procedur     |canada       |jurid        |treati        |mr           |asia         |jewish       |people’       |
+|(1945,1955].10 |argentin      |domin         |commiss      |aggress      |northern     |convent       |bevin        |china        |sudan        |geneva        |
+|(1955,1965].1  |particip      |cuba          |malaysia     |cambodia     |arab         |german        |american     |bantu        |zealand      |african       |
+|(1955,1965].2  |trade         |cuban         |pakistan     |lao          |israel       |socialist     |ecuador      |south        |australia    |algerian      |
+|(1955,1965].3  |moscow        |panama        |netherland   |viet         |palestin     |soviet        |chile        |nigeria      |iceland      |libya         |
+|(1955,1965].4  |industri      |american      |turkish      |communist    |egypt        |czechoslovak  |peru         |indian       |australian   |portug        |
+|(1955,1965].5  |coexist       |guatemala     |indonesia    |spain        |canal        |albania       |mexico       |india        |canada       |africa        |
+|(1955,1965].6  |cent          |dominican     |cyprus       |nam          |refuge       |germani       |argentin     |africa       |canadian     |libyan        |
+|(1955,1965].7  |cold          |italian       |somali       |spanish      |jordan       |romanian      |latin        |african      |danish       |congo         |
+|(1955,1965].8  |fire          |venezuela     |kashmir      |chines       |egyptian     |byelorussian  |uruguay      |congo        |inspect      |mali          |
+|(1955,1965].9  |eighteen      |austrian      |india        |cambodian    |syria        |nato          |pan          |thing        |soviet       |portugues     |
+|(1955,1965].10 |economi       |paraguay      |turkey       |pathet       |franc        |albanian      |argentina    |goa          |denmark      |cameroon      |
+|(1965,1975].1  |african       |iceland       |like         |israel       |like         |imperialist   |haiti        |mauritania   |philippin    |pakistan      |
+|(1965,1975].2  |rwanda        |panama        |programm     |arab         |socialist    |cuba          |ghana        |congo        |netherland   |india         |
+|(1965,1975].3  |uganda        |venezuela     |nuclear      |israeli      |soviet       |khmer         |zealand      |chad         |austria      |oil           |
+|(1965,1975].4  |zair          |salvador      |per          |palestin     |german       |imperi        |australia    |gabon        |italian      |indian        |
+|(1965,1975].5  |burundi       |argentina     |strategi     |zionist      |mongolian    |cuban         |bolivia      |volta        |malaysia     |cyprus        |
+|(1965,1975].6  |africa        |turkey        |neighbour    |palestinian  |byelorussian |aggress       |peru         |morocco      |itali        |kashmir       |
+|(1965,1975].7  |kenya         |spain         |cent         |aggress      |ssr          |revisionist   |haitian      |sahara       |japan        |bangladesh    |
+|(1965,1975].8  |zambia        |american      |china        |yemen        |czechoslovak |albania       |dominican    |upper        |burma        |grenada       |
+|(1965,1975].9  |british       |ecuador       |viet         |israel’      |ukrainian    |ireland       |chile        |spanish      |indonesia    |price         |
+|(1965,1975].10 |portug        |sea           |space        |jerusalem    |union        |revolutionari |pacif        |spain        |thailand     |nepal         |
+|(1975,1985].1  |imperialist   |pleasur       |zionist      |guatemala    |soviet       |ethiopia      |¬            |guyana       |malta        |chad          |
+|(1975,1985].2  |imperi        |dialog        |arab         |panama       |europ        |turkey        |bahama       |caribbean    |ireland      |guinea        |
+|(1975,1985].3  |vietnames     |program       |islamic      |latin        |german       |uganda        |bangladesh   |india        |japan        |morocco       |
+|(1975,1985].4  |lao           |cooper        |iraqi        |american     |socialist    |somalia       |tion         |lanka        |barbado      |burundi       |
+|(1975,1985].5  |chines        |fortieth      |egypt        |ecuador      |union        |kenya         |con          |franc        |papua        |mali          |
+|(1975,1985].6  |nam           |nonalign      |iranian      |rica         |mongolian    |ghana         |ment         |sri          |zealand      |oau           |
+|(1975,1985].7  |kampuchea     |per           |israeli      |costa        |romania      |lesotho       |finland      |jamaica      |pacif        |rwanda        |
+|(1975,1985].8  |viet          |indian        |yemen        |bolivia      |poland       |turkish       |burma        |dominica     |tobago       |seneg         |
+|(1975,1985].9  |benin         |connect       |entiti       |hondura      |itali        |ethiopian     |sierra       |venezuela    |australia    |zair          |
+|(1975,1985].10 |revolutionari |align         |austria      |canal        |commun       |portug        |leon         |grenada      |guinea       |equatori      |
+|(1985,1995].1  |pakistan      |wish          |caribbean    |wish         |panama       |viet          |pacif        |sri          |chad         |malawi        |
+|(1985,1995].2  |ireland       |organis       |saint        |arab         |panamanian   |nam           |japan        |lanka        |co           |burundi       |
+|(1985,1995].3  |swaziland     |cooper        |paraguay     |islamic      |wish         |europ         |myanmar      |american     |niger        |guinea        |
+|(1985,1995].4  |belarus       |recognis      |bahama       |iranian      |cuba         |european      |solomon      |ecuador      |nepal        |rwanda        |
+|(1985,1995].5  |croatia       |dispar        |haiti        |lebanon      |canal        |romania       |zealand      |hondura      |namibia      |equatori      |
+|(1985,1995].6  |bosnia        |liechtenstein |dominican    |iraqi        |philippin    |ukrain        |papua        |chile        |african      |liberia       |
+|(1985,1995].7  |european      |percept       |bolivia      |tunisia      |revolut      |albania       |fiji         |turkey       |program      |uganda        |
+|(1985,1995].8  |yugoslavia    |categori      |drug         |kuwait       |want         |poland        |australia    |latin        |fee          |zair          |
+|(1985,1995].9  |tajikistan    |tend          |barbado      |egypt        |tell         |co            |franc        |turkish      |racist       |kenya         |
+|(1985,1995].10 |azerbaijan    |realis        |haitian      |iraq         |enemi        |austria       |island       |costa        |pretoria     |benin         |
+|(1995,2005].1  |outset        |outset        |outset       |outset       |outset       |outset        |outset       |outset       |afghanistan  |outset        |
+|(1995,2005].2  |african       |arab          |latvia       |s            |korea        |azerbaijan    |tajikistan   |island       |trinidad     |european      |
+|(1995,2005].3  |guinea        |iraq          |ecuador      |sixtieth     |korean       |cyprus        |croatia      |caribbean    |tobago       |herzegovina   |
+|(1995,2005].4  |mongolia      |israel        |bolivia      |weapon       |malawi       |armenia       |turkmenistan |pacif        |pakistan     |kosovo        |
+|(1995,2005].5  |ethiopia      |palestinian   |andorra      |sector       |burundi      |malta         |kazakhstan   |saint        |nepal        |belarus       |
+|(1995,2005].6  |chad          |israeli       |chile        |commiss      |african      |turkey        |myanmar      |papua        |taliban      |€             |
+|(1995,2005].7  |africa        |lebanon       |paraguay     |outcom       |africa       |spain         |viet         |bahama       |swaziland    |bosnia        |
+|(1995,2005].8  |eritrea       |kuwait        |venezuela    |malaysia     |liberia      |georgia       |estonia      |barbado      |thailand     |ireland       |
+|(1995,2005].9  |côte          |iraqi         |argentina    |uruguay      |kenya        |turkish       |asean        |solomon      |sri          |ukrain        |
+|(1995,2005].10 |madagascar    |bahrain       |american     |wto          |uganda       |tunisia       |kyrgyzstan   |small        |monaco       |bulgaria      |
+|(2005,2015].1  |everi         |everi         |everi        |everi        |everi        |everi         |everi        |everi        |everi        |everi         |
+|(2005,2015].2  |european      |fiji          |ecuador      |arab         |mdgs         |island        |saint        |iran         |korea        |african       |
+|(2005,2015].3  |serbia        |afghanistan   |panama       |yemen        |nuclear      |pacif         |bahama       |muslim       |azerbaijan   |mali          |
+|(2005,2015].4  |georgia       |nepal         |paraguay     |kazakhstan   |treati       |solomon       |caribbean    |god          |japan        |somalia       |
+|(2005,2015].5  |kosovo        |pakistan      |peru         |mongolia     |disarma      |sids          |trinidad     |syria        |korean       |africa        |
+|(2005,2015].6  |bosnia        |timor         |america      |kuwait       |disput       |grenada       |tobago       |israel       |asean        |burundi       |
+|(2005,2015].7  |ukrain        |tajikistan    |canada       |lebanon      |multilater   |tuvalu        |lucia        |war          |myanmar      |sudan         |
+|(2005,2015].8  |herzegovina   |moldova       |bolivia      |marino       |mediat       |maldiv        |bangladesh   |islam        |ireland      |guinea        |
+|(2005,2015].9  |cyprus        |lest          |american     |egypt        |weapon       |papua         |barbado      |want         |sri          |malawi        |
+|(2005,2015].10 |malta         |afghan        |latin        |palestinian  |women        |ocean         |haiti        |jewish       |thailand     |somali        |
+|(2015,2022].1  |african       |pacif         |distinct     |distinct     |sudan        |european      |trinidad     |covid        |ukrain       |guatemala     |
+|(2015,2022].2  |mali          |island        |azerbaijan   |pandem       |pakistan     |serbia        |tobago       |un           |korea        |colombia      |
+|(2015,2022].3  |bosnia        |ocean         |armenia      |energi       |india        |timor         |sri          |pandem       |russian      |brazil        |
+|(2015,2022].4  |burundi       |solomon       |israel       |weapon       |georgia      |eu            |ireland      |vaccin       |russia       |spain         |
+|(2015,2022].5  |herzegovina   |malaysia      |syrian       |peacekeep    |thailand     |montenegro    |morocco      |beliz        |japan        |costa         |
+|(2015,2022].6  |congo         |tonga         |iran         |gender       |madagascar   |albania       |somalia      |saint        |korean       |andorra       |
+|(2015,2022].7  |sahel         |mauritius     |arab         |digit        |kazakhstan   |bangladesh    |bahama       |75th         |latvia       |rica          |
+|(2015,2022].8  |chad          |nepal         |palestinian  |trade        |turkmenistan |europ         |grenada      |bhutan       |ukrainian    |drug          |
+|(2015,2022].9  |guinea        |papua         |kingdom      |sdgs         |afghanistan  |canada        |kenya        |guyana       |north        |mexico        |
+|(2015,2022].10 |tanzania      |mongolia      |yemeni       |treati       |kyrgyzstan   |lest          |lanka        |caribbean    |china        |paraguay      |</code></pre>
 </div>
 </div>
 <ul>
@@ -725,7 +608,7 @@ LDA model for (2015,2022] successfully loaded.</code></pre>
 <span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>      tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"term_2"</span>, <span class="at">values_to =</span> <span class="st">"probability_2"</span>)</span>
 <span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine phi1 and phi2 results</span></span>
-<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    pair <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(phi1_result_long, phi2_result_long)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>    pair <span class="ot">&lt;-</span> knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">bind_cols</span>(phi1_result_long, phi2_result_long))</span>
 <span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Append the result to the list</span></span>
 <span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>    result_list[[i]] <span class="ot">&lt;-</span> pair</span>
@@ -769,63 +652,12 @@ LDA model for (2015,2022] successfully loaded.</code></pre>
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 6 
-Model 2 - Topic 1 
-Model 1 - Topic 1 
-Model 2 - Topic 6 
-# A tibble: 20 × 4
-   term_1   probability_1 term_2   probability_2
-   &lt;chr&gt;            &lt;dbl&gt; &lt;chr&gt;            &lt;dbl&gt;
- 1 nation         0.0329  nation         0.0233 
- 2 unit           0.0231  unit           0.0174 
- 3 peac           0.0137  intern         0.0114 
- 4 intern         0.0129  peac           0.0110 
- 5 world          0.0108  will           0.0107 
- 6 will           0.00880 countri        0.00947
- 7 state          0.00808 general        0.00918
- 8 organ          0.00804 world          0.00869
- 9 problem        0.00784 develop        0.00811
-10 general        0.00779 problem        0.00803
-11 econom         0.0431  countri        0.0434 
-12 countri        0.0407  develop        0.0431 
-13 develop        0.0322  econom         0.0320 
-14 social         0.0206  industri       0.0153 
-15 product        0.0119  product        0.0101 
-16 technic        0.00939 social         0.00965
-17 industri       0.00806 year           0.00931
-18 programm       0.00761 economi        0.00896
-19 american       0.00736 resourc        0.00895
-20 trade          0.00708 price          0.00871</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="UNGDC_topic_modeling_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 7 
-Model 2 - Topic 2 
-Model 1 - Topic 6 
-Model 2 - Topic 6 
-Model 1 - Topic 1 
-Model 2 - Topic 10 
-# A tibble: 30 × 4
-   term_1  probability_1 term_2  probability_2
-   &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
- 1 state         0.0309  state         0.0291 
- 2 unit          0.0263  unit          0.0156 
- 3 peopl         0.0215  peopl         0.0152 
- 4 peac          0.0155  peac          0.0148 
- 5 countri       0.0140  republ        0.0140 
- 6 republ        0.0117  intern        0.0119 
- 7 soviet        0.0115  soviet        0.0118 
- 8 govern        0.0101  nation        0.0116 
- 9 war           0.0100  secur         0.0108 
-10 general       0.00859 countri       0.00923
-# ℹ 20 more rows</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -834,63 +666,12 @@ Model 2 - Topic 10
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 7 
-Model 2 - Topic 7 
-Model 1 - Topic 1 
-Model 2 - Topic 8 
-Model 1 - Topic 9 
-Model 2 - Topic 9 
-# A tibble: 30 × 4
-   term_1    probability_1 term_2      probability_2
-   &lt;chr&gt;             &lt;dbl&gt; &lt;chr&gt;               &lt;dbl&gt;
- 1 israel           0.0285 arab              0.0227 
- 2 arab             0.0277 israel            0.0185 
- 3 unit             0.0158 state             0.0159 
- 4 peopl            0.0156 palestinian       0.0143 
- 5 state            0.0139 unit              0.0127 
- 6 territori        0.0127 peopl             0.0121 
- 7 resolut          0.0118 peac              0.0107 
- 8 peac             0.0115 resolut           0.0100 
- 9 secur            0.0108 aggress           0.00909
-10 nation           0.0108 secur             0.00899
-# ℹ 20 more rows</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="UNGDC_topic_modeling_files/figure-html/unnamed-chunk-10-4.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 9 
-Model 2 - Topic 2 
-Model 1 - Topic 8 
-Model 2 - Topic 7 
-# A tibble: 20 × 4
-   term_1  probability_1 term_2  probability_2
-   &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt;           &lt;dbl&gt;
- 1 world         0.0155  world         0.0181 
- 2 nation        0.0125  will          0.0146 
- 3 will          0.0114  nation        0.0133 
- 4 us            0.00971 peopl         0.0121 
- 5 one           0.00888 us            0.0110 
- 6 can           0.00860 can           0.0106 
- 7 must          0.00815 one           0.00972
- 8 countri       0.00733 must          0.00877
- 9 peopl         0.00607 new           0.00817
-10 human         0.00579 war           0.00763
-11 intern        0.0210  intern        0.0202 
-12 nation        0.0163  develop       0.0144 
-13 countri       0.0159  countri       0.0133 
-14 develop       0.0129  peac          0.0117 
-15 peac          0.0112  world         0.0105 
-16 will          0.0103  nation        0.0102 
-17 unit          0.0102  will          0.00998
-18 econom        0.00953 econom        0.00858
-19 right         0.00805 problem       0.00818
-20 general       0.00802 co            0.00805</code></pre>
 </div>
 <div class="cell-output-display">
 <div>
@@ -899,23 +680,6 @@ Model 2 - Topic 7
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 2 
-Model 2 - Topic 2 
-# A tibble: 10 × 4
-   term_1 probability_1 term_2 probability_2
-   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;
- 1 world        0.0181  nation       0.0185 
- 2 will         0.0146  world        0.0156 
- 3 nation       0.0133  must         0.0148 
- 4 peopl        0.0121  us           0.0129 
- 5 us           0.0110  unit         0.0125 
- 6 can          0.0106  will         0.0118 
- 7 one          0.00972 can          0.0115 
- 8 must         0.00877 new          0.00851
- 9 new          0.00817 human        0.00828
-10 war          0.00763 one          0.00792</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -923,60 +687,12 @@ Model 2 - Topic 2
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 7 
-Model 2 - Topic 1 
-Model 1 - Topic 3 
-Model 2 - Topic 5 
-Model 1 - Topic 2 
-Model 2 - Topic 9 
-# A tibble: 30 × 4
-   term_1      probability_1 term_2      probability_2
-   &lt;chr&gt;               &lt;dbl&gt; &lt;chr&gt;               &lt;dbl&gt;
- 1 peac              0.0206  intern            0.0178 
- 2 intern            0.0193  peac              0.0161 
- 3 secur             0.0111  state             0.0141 
- 4 region            0.0110  peopl             0.0131 
- 5 peopl             0.00998 secur             0.0108 
- 6 palestinian       0.00991 palestinian       0.0103 
- 7 state             0.00892 countri           0.00932
- 8 will              0.00782 region            0.00928
- 9 arab              0.00781 arab              0.00901
-10 israel            0.00773 will              0.00775
-# ℹ 20 more rows</code></pre>
-</div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="UNGDC_topic_modeling_files/figure-html/unnamed-chunk-10-7.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Model 1 - Topic 9 
-Model 2 - Topic 4 
-Model 1 - Topic 2 
-Model 2 - Topic 5 
-Model 1 - Topic 1 
-Model 2 - Topic 8 
-Model 1 - Topic 5 
-Model 2 - Topic 9 
-Model 1 - Topic 6 
-Model 2 - Topic 10 
-# A tibble: 50 × 4
-   term_1 probability_1 term_2 probability_2
-   &lt;chr&gt;          &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;
- 1 world        0.0154  will         0.0177 
- 2 will         0.0145  world        0.0173 
- 3 must         0.0129  us           0.0138 
- 4 nation       0.0123  must         0.0116 
- 5 peopl        0.0118  nation       0.0112 
- 6 us           0.0112  peopl        0.0112 
- 7 can          0.0107  can          0.0105 
- 8 unit         0.00918 one          0.00901
- 9 year         0.00813 unit         0.00755
-10 one          0.00806 year         0.00711
-# ℹ 40 more rows</code></pre>
 </div>
 </div>
 </section>

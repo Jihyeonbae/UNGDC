@@ -107,3 +107,14 @@ removed stop words, punctuations, stemming, numbers, changed to lower cases
 saved resulted in 0120
 removed stop words, punctuations, stemming, numbers, changed to lower cases
 ran topic modeling across the entire corpus, not just sovereignty. 
+
+## Trial 10: duration 1945:2022, entire corpus, interval 10, 10 topics
+saved results in 0203
+
+I removed additional stop words (Will and must)
+
+## Trial 10
+saved results in 0120_replicate
+trying to update lda_generator with new functions replacing deprecated options from quanteda package. 
+
+New function generated too specific terms for each topic. To debug the issue, this reran the same code from LDA_trial7.R
