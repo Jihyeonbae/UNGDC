@@ -4,13 +4,11 @@ format: html
 editor: visual
 execute:
   warning: false
-
 ---
 
-This version *does* use tf-idf for LDA analysis. For the older version, refer to `UNGDC_topic_modeling.qmd`. I created a separate version for two reasons. First, some of the functions and options deprecated from the `quanteda` R package. Earlier version might not be reproducible. Second, the inclusion of tf-idf to generate LDA analysis has a tradeoff. Since it gives less weights to terms that appear frequently across the documents, by definition, tf-idf lowers the correlation between terms over different time window. It is harder to notice a clear linkage between two topics represented by different terms. However, unlike the earlier version that excludes tf-idf, topics are more specific, and substantively meaningful. 
+This version *does* use tf-idf for LDA analysis. For the older version, refer to `UNGDC_topic_modeling.qmd`. I created a separate version for two reasons. First, some of the functions and options deprecated from the `quanteda` R package. Earlier version might not be reproducible. Second, the inclusion of tf-idf to generate LDA analysis has a tradeoff. Since it gives less weights to terms that appear frequently across the documents, by definition, tf-idf lowers the correlation between terms over different time window. It is harder to notice a clear linkage between two topics represented by different terms. However, unlike the earlier version that excludes tf-idf, topics are more specific, and substantively meaningful.
 
-- TO DO: Reduce the number of topics from 10 to 5. Tf-idf increased the between-document variation and relatively decreased the commonality across the documents. It became harder to find a common topic, and it reducing the number of topics might help. I also need to implement moving window to produce a smoother transition of topics over time. 
-
+-   TO DO: Reduce the number of topics from 10 to 5. Tf-idf increased the between-document variation and relatively decreased the commonality across the documents. It became harder to find a common topic, and it reducing the number of topics might help. I also need to implement moving window to produce a smoother transition of topics over time.
 
 ## Dynamic Topic Modeling for UNGDC
 
@@ -91,7 +89,6 @@ sapply(levels(light_interval$span), function(i) {
 })
 ```
 
-
 -   dfm function helps remove stop words and perform other preprocessing steps to create a more refined document-feature matrix. Additionally, the subsequent dfm_tfidf function is used to compute TF-IDF (Term Frequency-Inverse Document Frequency) scores, which down-weights terms that appear frequently across documents.
 
 # LDA Topic Modeling
@@ -100,13 +97,15 @@ sapply(levels(light_interval$span), function(i) {
 
 -   Current parameters in the below code sets the number of topics as 10, and uses the TF-IDF scores.
 
+-   In order *not* to replicate the entire process of LDA modeling, download this folder that contains lda outputs here `` [`output/lda/decade_0120_replicate` ``\](<https://drive.google.com/drive/folders/1woSqpayZGCozaFe1NoZuEYzdx7zv32wr?usp=share_link>).
 
 # LDA Generator Updated Function
+
 ```{r}
 
 ## New version since dfm() options deprecated within the quanteda package.
 lda_generator <- function(corpus, span_levels, num_topics = 10) {
-  output_dir <- "output/lda/decade_0203"
+  output_dir <- "output/lda/decade_0120_replicate"
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
@@ -155,7 +154,7 @@ After running the LDA model, I read in each LDA results as a separate element in
 ```{r}
 
 
-read_lda_models <- function(span_levels, output_dir = "../output/lda/decade_0203") {
+read_lda_models <- function(span_levels, output_dir = "../output/lda/decade_0120_replicate") {
   lda_models <- list()
 
   for (i in span_levels) {
@@ -298,6 +297,7 @@ pair<-bind_cols(phi1_result_long, phi2_result_long)
 ```
 
 #Function to print out the words
+
 ```{r}
 orderBasedOnRow <- function(df, I) {
   # Order columns based on the Ith row values
