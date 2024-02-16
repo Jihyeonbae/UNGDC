@@ -30,7 +30,7 @@ library(tm)
 library(tidyr)
 library(knitr)
 
-light <- readRDS("~/Desktop/UNGDC/data/processed/cleaned.RDS")
+light <- readRDS("data/processed/cleaned.RDS")
 
 #Set up the parameters
 light_interval <- light %>%
@@ -154,7 +154,7 @@ After running the LDA model, I read in each LDA results as a separate element in
 ```{r}
 
 
-read_lda_models <- function(span_levels, output_dir = "../output/lda/decade_0120_replicate") {
+read_lda_models <- function(span_levels, output_dir = "output/lda/decade_0120_replicate") {
   lda_models <- list()
 
   for (i in span_levels) {
@@ -174,7 +174,7 @@ read_lda_models <- function(span_levels, output_dir = "../output/lda/decade_0120
 
 
 
-lda_models <- read_lda_models(span_levels, output_directory)
+lda_models <- read_lda_models(span_levels)
 
 topic_tables <- function(lda_models, span_levels) {
   topic_tables <- list()
