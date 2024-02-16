@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Dynamic UNGDC (updated)</title>
+<title>. - Dynamic UNGDC (updated)</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -57,24 +57,111 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="UNGDC_topic_modeling_updated_files/libs/clipboard/clipboard.min.js"></script>
-<script src="UNGDC_topic_modeling_updated_files/libs/quarto-html/quarto.js"></script>
-<script src="UNGDC_topic_modeling_updated_files/libs/quarto-html/popper.min.js"></script>
-<script src="UNGDC_topic_modeling_updated_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="UNGDC_topic_modeling_updated_files/libs/quarto-html/anchor.min.js"></script>
-<link href="UNGDC_topic_modeling_updated_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="UNGDC_topic_modeling_updated_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="UNGDC_topic_modeling_updated_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="UNGDC_topic_modeling_updated_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="UNGDC_topic_modeling_updated_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
 
 
+<link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="fullcontent">
+<body class="nav-fixed">
 
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">.</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../rmarkdown/UNGDC_topic_modeling_updated.html" aria-current="page"> 
+<span class="menu-text">Dynamic UNGDC (updated)</span></a>
+  </li>  
+  <li class="dropdown-header">
+ <span class="menu-text">Topic Modeling</span></li>
+</ul>
+          </div> <!-- /navcollapse -->
+          <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#dynamic-topic-modeling-for-ungdc" id="toc-dynamic-topic-modeling-for-ungdc" class="nav-link active" data-scroll-target="#dynamic-topic-modeling-for-ungdc">Dynamic Topic Modeling for UNGDC</a></li>
+  <li><a href="#term-frequency-inverse-matrix-and-descriptive-data-visualization" id="toc-term-frequency-inverse-matrix-and-descriptive-data-visualization" class="nav-link" data-scroll-target="#term-frequency-inverse-matrix-and-descriptive-data-visualization">Term Frequency-Inverse Matrix and Descriptive Data Visualization</a></li>
+  <li><a href="#lda-topic-modeling" id="toc-lda-topic-modeling" class="nav-link" data-scroll-target="#lda-topic-modeling">LDA Topic Modeling</a></li>
+  <li><a href="#lda-generator-updated-function" id="toc-lda-generator-updated-function" class="nav-link" data-scroll-target="#lda-generator-updated-function">LDA Generator Updated Function</a>
+  <ul class="collapse">
+  <li><a href="#reading-in-lda-results" id="toc-reading-in-lda-results" class="nav-link" data-scroll-target="#reading-in-lda-results">Reading in LDA results</a></li>
+  <li><a href="#dynamic-topic-modeling" id="toc-dynamic-topic-modeling" class="nav-link" data-scroll-target="#dynamic-topic-modeling">Dynamic Topic Modeling</a>
+  <ul class="collapse">
+  <li><a href="#this-generates-output-for-a-single-pair-of-time-frames" id="toc-this-generates-output-for-a-single-pair-of-time-frames" class="nav-link" data-scroll-target="#this-generates-output-for-a-single-pair-of-time-frames">This generates output for a single pair of time frames</a></li>
+  </ul></li>
+  <li><a href="#below-function-generates-heatmaps-for-a-pair-of-models." id="toc-below-function-generates-heatmaps-for-a-pair-of-models." class="nav-link" data-scroll-target="#below-function-generates-heatmaps-for-a-pair-of-models.">Below function generates heatmaps for a pair of models.</a></li>
+  <li><a href="#rows-with-high-correlation" id="toc-rows-with-high-correlation" class="nav-link" data-scroll-target="#rows-with-high-correlation">Rows with high correlation</a></li>
+  <li><a href="#execute-functions-over-pairs" id="toc-execute-functions-over-pairs" class="nav-link" data-scroll-target="#execute-functions-over-pairs">Execute functions over pairs</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -96,7 +183,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This version <em>does</em> use tf-idf for LDA analysis. It also includes updated options from the <code>quanteda</code> R package.</p>
+<p>This version <em>does</em> use tf-idf for LDA analysis. For the older version, refer to <code>UNGDC_topic_modeling.qmd</code>. I created a separate version for two reasons. First, some of the functions and options deprecated from the <code>quanteda</code> R package. Earlier version might not be reproducible. Second, the inclusion of tf-idf to generate LDA analysis has a tradeoff. Since it gives less weights to terms that appear frequently across the documents, by definition, tf-idf lowers the correlation between terms over different time window. It is harder to notice a clear linkage between two topics represented by different terms. However, unlike the earlier version that excludes tf-idf, topics are more specific, and substantively meaningful.</p>
+<ul>
+<li>TO DO: Reduce the number of topics from 10 to 5. Tf-idf increased the between-document variation and relatively decreased the commonality across the documents. It became harder to find a common topic, and it reducing the number of topics might help. I also need to implement moving window to produce a smoother transition of topics over time.</li>
+</ul>
 <section id="dynamic-topic-modeling-for-ungdc" class="level2">
 <h2 class="anchored" data-anchor-id="dynamic-topic-modeling-for-ungdc">Dynamic Topic Modeling for UNGDC</h2>
 <p>In order to generate LDA topic modeling results for the corpus of UNGD, I split the corpus into different time frames. The entire time span of 1945 until 2022 is split into 8 intervals, with a duration of 10 years.</p>
@@ -116,7 +206,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>light <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"~/Desktop/UNGDC/data/processed/cleaned.RDS"</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>light <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/cleaned.RDS"</span>)</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#Set up the parameters</span></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>light_interval <span class="ot">&lt;-</span> light <span class="sc">%&gt;%</span></span>
@@ -179,16 +269,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="lda-topic-modeling" class="level1">
 <h1>LDA Topic Modeling</h1>
 <ul>
-<li><p>In this section, I perform topic modeling using LDA, an unsupervised method to estimate vectors that represent topics within a speech.It assumes that each speech doument is a mixture of topics, and each word is attributable to one of the document’s topics.</p></li>
-<li><p>Current parameters in the below code sets the number of topics as 5, and uses the TF-IDF scores.</p></li>
+<li><p>In this section, I perform topic modeling using LDA, an unsupervised method to estimate vectors that represent topics within a speech.It assumes that each speech document is a mixture of topics, and each word is attributable to one of the document’s topics.</p></li>
+<li><p>Current parameters in the below code sets the number of topics as 10, and uses the TF-IDF scores.</p></li>
+<li><p>In order <em>not</em> to replicate the entire process of LDA modeling, download this folder that contains lda outputs here <code>[`output/lda/decade_0120_replicate`</code>](<a href="https://drive.google.com/drive/folders/1woSqpayZGCozaFe1NoZuEYzdx7zv32wr?usp=share_link" class="uri">https://drive.google.com/drive/folders/1woSqpayZGCozaFe1NoZuEYzdx7zv32wr?usp=share_link</a>).</p></li>
 </ul>
 </section>
 <section id="lda-generator-updated-function" class="level1">
 <h1>LDA Generator Updated Function</h1>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## New version since dfm() options deprecated within the quanteda package.</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">5</span>) {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"output/lda/decade_0203"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, <span class="at">num_topics =</span> <span class="dv">10</span>) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">&lt;-</span> <span class="st">"output/lda/decade_0120_replicate"</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  }</span>
@@ -232,7 +323,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="reading-in-lda-results">Reading in LDA results</h2>
 <p>After running the LDA model, I read in each LDA results as a separate element in a list form. Below code prins out top 10 terms associated with each topic in the LDA models for different span levels. Each row represents one semantic topic.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>read_lda_models <span class="ot">&lt;-</span> <span class="cf">function</span>(span_levels, <span class="at">output_dir =</span> <span class="st">"../output/lda/decade_0120_replicate"</span>) {</span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>read_lda_models <span class="ot">&lt;-</span> <span class="cf">function</span>(span_levels, <span class="at">output_dir =</span> <span class="st">"output/lda/decade_0120_replicate"</span>) {</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  lda_models <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> span_levels) {</span>
@@ -251,9 +342,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>output_directory <span class="ot">&lt;-</span> <span class="st">"../output/lda/decade_0120_replicate"</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>lda_models <span class="ot">&lt;-</span> <span class="fu">read_lda_models</span>(span_levels, output_directory)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>lda_models <span class="ot">&lt;-</span> <span class="fu">read_lda_models</span>(span_levels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>LDA model for (1945,1955] successfully loaded.
 LDA model for (1955,1965] successfully loaded.
@@ -710,11 +800,12 @@ Model 2 - Topic 4
 </div>
 </div>
 </div>
+
+
 </section>
 </section>
 
-</main>
-<!-- /main column -->
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -1108,17 +1199,3 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
 
 </body></html>
-<script>window.backupDefine = window.define; window.define = undefined;</script>
-<script type="text/javascript" src="quarto-preview.js"></script>
-<script>window.define = window.backupDefine; window.backupDefine = undefined;</script>
-<script type="text/javascript">
-  const options = {
-    origin: "http://localhost:3201",
-    search: "?capabilities=1&amp;host=http%3A%2F%2F127.0.0.1%3A9259",
-    inputFile: "/Users/jihyeonbae/Desktop/UNGDC/docs/UNGDC_topic_modeling_updated.qmd",
-    isPresentation: false
-  }
-  document.addEventListener("DOMContentLoaded", function () {
-    window.QuartoPreview.init(options);
-  });
-</script>
