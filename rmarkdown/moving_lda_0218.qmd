@@ -1,0 +1,313 @@
+---
+title: "Moving LDA_0218"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+## TO DO
+
+-   Change the number of topics to even 20. With k=10, it shows too many country names.
+-   Also lower the correlation threshold from 0.8 to 0.6.
+
+## Introduction
+
+This study analyzes the global agenda of the United Nations General Debate (UNGD) and shows temporal development of the topics. Substantively, UNGDC reflects in change of agendas when exogenous shocks take place. The issue of connecting time-series evolution of topic has been addressed by others. Rieger et al. [@rieger2021] introduces a sequential approach to LDA with the accompanying package, and Greene at al. [@greene2017] uses non-negative matrix factorization to analyze the European Parliament Debate Corpus.
+
+There are two main challenges to address cross-section time-series text dataset. First, same topic is represented with different sets of terms over time, given the social context and norms around a specific construct. Second, given changes around the topic representation, it requires theory-based post-labeling to
+
+## Goal
+
+In order to generate LDA estimations across time more smoothly, this script changes the `UNGDC_topic_modeling_updated.qmd`and experiments with different moving window. Just like the other scripts, I use `cleaned.csv` file. It has four columns: "ccode_iso", "session", "year", and finally "text".
+
+## Experiment logs
+
+Size of the window, and overlapping interval can influence the level of correlation between vectors. The goal of experiments with changing parameters is to capture general themes that discuss beyond a region-specific topic. Furthermore, I overcome the problem of raw term frequency that treats all terms as equally important. Inverse document frequency (idf) of a term is a weight, defined as logged value of the total number of documents in a collection denominated by the number of documents that contain the term. Intuitively, this gives less weight to terms that show up commonly across all the documents. The term frequency-inverse document frequency(tf-idf) weighting scheme returns a weight to a term that increases with the number of occurrence within a small [@rieger2021]set of documents ([@manning2008]). This supplements the explicit omission of stop words by winnowing out context-specific frequent words.
+
+There are different options for weight type, which determines the way each term is counted. Functionally, I used `quanteda` package to specify this scheme option. I tried count type, which provides an integer feature of count, and proportion type that is based on the relative frequency of a term compared to total counts. Proportion type is calculated by $\frac{tf_{ij}}{\Sigma_{j} {tf_{ij}}}$ where in $i, j$ each represents indices for a term and a document. Given the normalization process of the proportion weight type, variation between terms is smaller than simple count type. This is expected to lessen the gap between rare and frequent terms, and hence allow model to capture even general terms. R package "topic_models" does not allow tf_idf based on "prop" as an input because LDA assumes integer counts as observations, not floats. 
+
+-   [x] Experiment1: 10-year, 5 overlap, saved in `moving_0209`. tfidf option: count and inverse. 10 topics
+-   [x] Experiment2: 10-year, 5 overlap, saved in `moving_0218`. tfidf option: count and inverse. 20 topics
+-   [ ] Experiment3: 10-year, 5 overlap, saved in `moving_0214`. tfidf option: prop and inverse. 20 topics
+
+## Setting up libraries and load raw data
+
+```{r}
+#| warning: FALSE
+
+library(plyr)
+library(dplyr)
+library(tm)
+library(ggplot2)
+library(quanteda)
+library(readr)
+library(seededlda)
+library(slam)
+library(jsonlite)
+library(gplots) #this is for heatmap
+library(zoo)
+library(tibble)
+library(knitr)
+library(topicmodels)
+
+
+light<-read.csv("../data/processed/cleaned.csv")
+light<-light%>%select(-X)
+
+mystopwords <- c("will", "must", "mr")
+custom_stopwords <-c(stopwords("english"), mystopwords)
+
+# Set up the parameters
+duration <- 1945:2022
+interval <- 10
+
+breaks <- c(seq(from = 1945, to = 2020, by = 5), 2022) 
+
+last_break <- breaks[length(breaks)-1]
+
+if (last_break + interval > 2020) {
+  moving_breaks <- breaks
+} else {
+  moving_breaks <- c(breaks, last_break + interval)
+}
+
+start_years <- moving_breaks[1:14]
+end_years <- start_years + interval
+end_years <- end_years[1:14]
+
+# add the final two windows
+span_levels <- c(paste0(start_years, "-", end_years), "2015-2022", "2020-2022")
+```
+
+# LDA Generation
+
+```{r}
+lda_generator <- function(corpus, span_levels, window_size = 10, overlap = 5, num_topics = 20) {
+  output_dir <- "../output/lda/moving_0218_2"
+  if (!dir.exists(output_dir)) {
+    dir.create(output_dir, recursive = TRUE)
+  }
+  
+  start_years <- numeric(length(span_levels))
+  end_years <- numeric(length(span_levels))
+  
+  for (i in seq_along(span_levels)) {
+    years <- strsplit(as.character(span_levels[i]), "-")[[1]]
+    start_years[i] <- as.numeric(years[1])
+    end_years[i] <- as.numeric(years[2])
+  }
+  
+  for (i in seq_along(span_levels)) {
+    start_year_span <- start_years[i]
+    end_year_span <- end_years[i]
+    
+    start_time <- Sys.time()
+    
+    # Subset the corpus for the time window
+    subset <- corpus[corpus$year >= start_year_span & corpus$year <= end_year_span, ]
+    
+    # Preprocess the subset
+    tokens <- tokens(subset$text, 
+                     remove_numbers = TRUE,
+                     remove_punct = TRUE,  # Remove punctuation
+                     remove_symbols = TRUE,  # Remove special characters
+                     split_hyphens = TRUE) %>%
+      tokens_tolower() %>%
+      tokens_remove(pattern = custom_stopwords) %>%
+      tokens_wordstem() 
+    subset_dfm <- dfm(tokens)
+    
+    # Convert to TF-IDF matrix
+    dfm_idf <- dfm_tfidf(subset_dfm,
+                         scheme_tf = "count",
+                         scheme_df = "inverse")
+
+
+    tmod_lda <- textmodel_lda(subset_dfm, k = num_topics)
+    
+    # Save LDA model
+    lda_output_file <- file.path(output_dir, paste0("lda_model_", start_year_span, "-", end_year_span, ".RDS"))
+    saveRDS(tmod_lda, lda_output_file)
+    
+    # Move the window with overlap
+    start_year_span <- start_year_span + overlap
+    end_year_span <- end_year_span + overlap
+    
+    end_time <- Sys.time()
+    elapsed_time <- end_time - start_time
+    cat("Elapsed time for iteration:", elapsed_time, "\n")
+  }
+}
+
+
+
+
+# Execute
+lda_generator(light, span_levels) 
+```
+
+# Read in lda outputs
+
+Given the time it takes to run the LDA models, I directly read in the outputs from a local directory.
+
+```{r}
+# Define a list to store the LDA model outputs
+read_lda_models <- function(span_levels, output_dir) {
+  lda_models <- list()  
+  for (span in span_levels) {
+    lda_output_file <- file.path(output_dir, paste0("lda_model_", span, ".RDS"))
+    if (file.exists(lda_output_file)) {
+      lda_model <- readRDS(lda_output_file)
+      lda_models <- c(lda_models, list(lda_model))  
+      cat(sprintf("LDA model for %s successfully loaded.\n", span))
+    } else {
+      cat(sprintf("LDA model file for %s not found.\n", span))
+    }
+  }
+
+  return(lda_models)
+}
+```
+
+```{r}
+# read in the LDA models
+output_directory <- file.path("../output/lda/moving_0218_2")
+lda_models <- read_lda_models(span_levels, output_directory)
+```
+
+# Functions for LDA Analysis
+
+## Function 1) Generating heatmaps
+
+To visualize the correlation between term-weight vectors from two time periods, below function generates heatmaps across pairs.
+
+```{r}
+generate_heatmap <- function(model1, model2, span) {
+  phi1 <- model1$phi
+  phi2 <- model2$phi
+  
+  phi1_df <- as.data.frame(phi1)
+  phi2_df <- as.data.frame(phi2)
+  
+  all_terms <- union(colnames(phi1_df), colnames(phi2_df))
+  
+  phi1_union <- bind_cols(phi1_df, setNames(data.frame(matrix(0, nrow = nrow(phi1_df), ncol = length(setdiff(all_terms, colnames(phi1_df))))), setdiff(all_terms, colnames(phi1_df))))
+  phi2_union <- bind_cols(phi2_df, setNames(data.frame(matrix(0, nrow = nrow(phi2_df), ncol = length(setdiff(all_terms, colnames(phi2_df))))), setdiff(all_terms, colnames(phi2_df))))
+  
+  phi1_union <- phi1_union[, order(colnames(phi1_union))]
+  phi2_union <- phi2_union[, order(colnames(phi2_union))]
+  
+  dim(phi1_union)
+  dim(phi2_union)
+  
+  cor_matrix <- cor(t(phi1_union), t(phi2_union))
+  
+  # Heatmap for correlation matrix
+  heatmap_title <- paste("Correlation - Time Window:", span)
+  
+  heatmap.2(cor_matrix,
+            Rowv = FALSE, Colv = FALSE,
+            col = heat.colors(16),
+            trace = "none", # no row/column names
+            key = TRUE, keysize = 1.5,
+            density.info = "none", margins = c(5, 5),
+            cexCol = 1, cexRow = 1, # adjust text size
+            notecol = "black", notecex = 0.7,
+            xlab = "Time 2",
+            ylab = "Time 1",
+            main = heatmap_title,
+            symkey = FALSE)
+  
+  return(list(phi1_union = phi1_union, phi2_union = phi2_union, cor_matrix = cor_matrix))
+}
+
+```
+
+## Function 2) Printing out correlated term vectors
+
+Based on the correlation matrix, below code prints out term vectors that show high correlation. It also lists the topic index from two different time intervals. Note that even the highly-correlated topics can have different numeric indices.
+
+```{r}
+print_ordered_rows <- function(phi1_union, phi2_union, cor_matrix, high_corr_indices, correlation_threshold = 0.9) {
+  # Find indices where correlation is higher than the threshold
+  high_corr_indices <- which(cor_matrix > correlation_threshold & !is.na(cor_matrix), arr.ind = TRUE)
+  
+  # Create an empty list to store results
+  result_list <- list()
+  
+  # Print the ordered rows for each topic with high correlation
+  for (i in seq_len(nrow(high_corr_indices))) {
+    model1_topic <- high_corr_indices[i, 1]
+    model2_topic <- high_corr_indices[i, 2]
+    
+    # Print the ordered rows for each model's topic
+    cat(paste("Model 1 - Topic", model1_topic), "\n")
+    phi1_result_row <- orderBasedOnRow(phi1_union, model1_topic)
+    
+    cat(paste("Model 2 - Topic", model2_topic), "\n")
+    phi2_result_row <- orderBasedOnRow(phi2_union, model2_topic)
+    
+    # Convert result rows to long format
+    phi1_result_long <- phi1_result_row %>%
+      tidyr::pivot_longer(everything(), names_to = "term_1", values_to = "probability_1")
+    
+    phi2_result_long <- phi2_result_row %>%
+      tidyr::pivot_longer(everything(), names_to = "term_2", values_to = "probability_2")
+    
+    # Combine phi1 and phi2 results
+    pair <- bind_cols(phi1_result_long, phi2_result_long)
+    
+    # Append the result to the list
+    result_list[[i]] <- pair
+  }
+  
+  # Combine all results into a single dataframe
+  final_result <- do.call(bind_rows, result_list)
+  
+  print(kable(final_result))
+}
+```
+
+## Function 3) Sorting top 10 terms from each term vector.
+
+```{r}
+orderBasedOnRow <- function(df, I) {
+  # Order columns based on the Ith row values
+  ordered_cols <- order(apply(df, 2, function(x) x[I]), decreasing = TRUE)
+
+  # Reorder the data frame columns
+  ordered_df <- df[, ordered_cols]
+
+  ordered_row <- ordered_df[I, 1:10]
+
+  return(ordered_row)
+}
+```
+
+# Loop over moving windows and print results
+
+```{r}
+for (i in 1:length(lda_models)) {
+  if (i < length(lda_models)) {
+    model1 <- lda_models[[i]]
+    model2 <- lda_models[[i + 1]]
+    span <- span_levels[i]
+    result <- generate_heatmap(model1, model2, span)
+
+    phi1_union <- result$phi1_union
+    phi2_union <- result$phi2_union
+    cor_matrix <- result$cor_matrix
+
+    # Print ordered rows only if there are high correlations
+    if (any(cor_matrix > 0.8, na.rm = TRUE)) {
+      phi1_result <- phi1_union[, order(colMeans(phi1_union), decreasing = TRUE)]
+      phi2_result <- phi2_union[, order(colMeans(phi2_union), decreasing = TRUE)]
+
+      # Call the modified function and pass high_corr_indices as an argument
+      final_result <- print_ordered_rows(phi1_result, phi2_result, cor_matrix, high_corr_indices, correlation_threshold = 0.8)
+      print(final_result)
+    }
+  }
+}
+
+```
