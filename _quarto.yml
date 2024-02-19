@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - "index.qmd"
+   # - "docs/topic_modeling.md"
+   # - "docs/UNGDC_topic_modeling.qmd"
+    - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
+  execute-dir: project
+  
+    
+website:
+  title: "."
+  navbar:
+    left:
+   #   - docs/topic_modeling.md
+      - href: rmarkdown/UNGDC_topic_modeling_updated.qmd
+      - text: Topic Modeling
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+
