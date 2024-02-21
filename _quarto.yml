@@ -3,19 +3,27 @@ project:
   output-dir: docs
   render:
     - "index.qmd"
-   # - "docs/topic_modeling.md"
-   # - "docs/UNGDC_topic_modeling.qmd"
+    - "README.md" 
     - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
+    - "jupyter_notebook/functions_for_bert.ipynb"
+ 
   execute-dir: project
   
     
 website:
-  title: "."
-  navbar:
-    left:
-   #   - docs/topic_modeling.md
-      - href: rmarkdown/UNGDC_topic_modeling_updated.qmd
-      - text: Topic Modeling
+  title: "UN General Debates Speech Analysis"
+  sidebar:
+    contents:
+      - text: "Welcome"
+        href: README.md
+      - section: Topic Modeling
+        contents:       
+          - text: Topic Modeling 1
+            href: rmarkdown/UNGDC_topic_modeling_updated.qmd
+      - section: BERT
+        contents:
+          - text: BERT Functions
+            href: jupyter_notebook/functions_for_bert.ipynb
 
 format:
   html:
