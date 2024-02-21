@@ -1,0 +1,455 @@
+---
+title: "liwc_modeling"
+author: "Jihyeon bae"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Introduction
+
+In this project, we use linguistic features of state representatives' speech transcripts from the United Nations General Debate Corpus (UNGDC) to predict the regime type. The goal is twofold. First, we aim at running a hard test for a hypothesis that countries identified with distinct regime types show different linguistic styles. If we can predict the speaker's regime type based on linguistic features, it is a strong indication of the difference in linguistic features across regime types. Second, this project analyzes what the linguistic features are when it comes to classifying regime types. 
+
+This script uses the scores of LIWC features and merges with country-year level meta data. `"data/raw/controls/controls.csv"` has a battery of country-year level variables that might potentially confound the statistical modeling. With `liwc_meta` dataset, at the country-year level, I run a series of statistical models that probe the relationship between linguistic features and sentiment scores of that speech. I further test whether there is a correlation between a country's invocation of international legal norms and the regime type. 
+
+
+```{r setup, include=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(countrycode)
+library(lmtest) #for coeftest function
+library(collapse)
+library(plm)
+library(gplm)
+library(broom)
+library(knitr) # for kable function
+
+liwc_df<-read_csv("../data/interim/liwc_meta.csv")
+
+liwc_df<-liwc_df%>%
+  select(-"...1")
+liwc_df$year<-as.numeric(liwc_df$year)
+
+#removing variables with too many missing values 
+liwc_df <- liwc_df %>%
+  select(
+    -cow_num_inter, -cow_inter, -cow_num_civil, -cow_civil, 
+    -wdi_homicides, -wjp_overall, -wbgi_rle, -wbgi_pve, 
+    -wbgi_cce, -wbgi_gee, -pts_ptsh, -rsf_pfi, -rsf_pfi0212, 
+    -rsf_pfi1321, -nelda_mbbe, -nelda_noe, -nelda_oa, 
+    -nelda_rpae, -nelda_vcdbe, -mm_num_violence, -dpi_execnat, 
+    -dpi_legelec, -dpi_exelec, -dpi_liec, -dpi_eiec, 
+    -dpi_fraud, -dpi_auton, -dpi_muni, 
+    -v2eltype_0, -v2eltype_1, -v2eltype_2, -v2eltype_3, 
+    -v2eltype_4, -v2eltype_5, -v2eltype_6
+  )
+```
+
+# Keyword variables
+
+- Three binary variables: `sovereignty`, `intervention`, and `human_rights`. These are coded 1 when detected at least one time during the speech, 0 otherwise. 
+- Three count variables: `sovereignty_count`, `intervention_count`, `human_rights_count`. These variables are the number of keywords appearing during the speech. 
+
+```{r}
+liwc_df <- liwc_df %>%
+  mutate(sovereignty = ifelse(str_detect(text, "sovereignty"), 1, 0),
+         intervention = ifelse(str_detect(text, "intervention"), 1, 0),
+         human_rights = ifelse(str_detect(text, "human rights"), 1, 0)) %>%
+  mutate(sovereignty_count = str_count(text, "sovereignty"),
+         intervention_count = str_count(text, "intervention"),
+         human_rights_count = str_count(text, "human rights"))
+```
+
+## Modeling
+
+Using random effects model when the unit-specific intercepts have correlation with the input variables, and eventually lead to omitted variable bias. I suspect this would not be the case, as the linguistic features (inputs) often have high correlation with time invariant characteristics of countries. However, there does not exist a consistent theoretical conjecture on the correlation between these two. To accommodate such uncertainty, we also supplement the result by using fixed effects model. 
+
+### Model 0: pooled model with LIWC features
+
+plm package does not allow a dot feature $( y ~ . )$ which selects all the columns except for the specified dependent variable. In order to avoid manual entry of all the LIWC features, I use a function called "expand_formula" from a [StackOverflow] (https://stackoverflow.com/questions/26182348/use-all-variables-in-a-model-with-plm-in-r). 
+
+```{r}
+  "
+  Input: dependent variable in a character form, names of the input features
+  Output: formula ready to be used for plm package. 
+  Example: expand_formula(output ~ .,names(data)) 
+            output ~ x1 + x2 + ... + xn
+  "
+expand_formula <- 
+  function(form="A ~.",varNames=c("A","B","C")){
+  has_dot <- any(grepl('.',form,fixed=TRUE))
+  if(has_dot){
+    ii <- intersect(as.character(as.formula(form)),
+          varNames)
+    varNames <- varNames[!grepl(paste0(ii,collapse='|'),varNames)]
+
+   exp <- paste0(varNames,collapse='+')
+   as.formula(gsub('.',exp,form,fixed=TRUE))
+
+  }
+  else as.formula(form)
+}
+
+```
+
+
+```{r}
+liwc_inputs<-liwc_df[, c(5:14, 16:122)]
+id <- liwc_df[, 1:3]
+y <- liwc_df[, 152]
+controls <- liwc_df[, 153:199]
+data <- cbind(y, id, liwc_inputs)
+data_controls<- cbind(y, id, liwc_inputs, controls)
+controls_only<- cbind(y, id, controls)
+
+data<-pdata.frame(data, index=c("ccode_iso","session", "year"), drop.index = TRUE)
+
+pdim(data)
+
+# standard error clustered by both time and group.
+model0_cluster_twoway <- kable(
+  tidy(coeftest(model0, vcov=vcovDC(model0, type="sss",
+  caption= "Pooled model with cluster robust standard errors"))))
+
+# standard error clustered by time. 
+model0_cluster_time<- kable(
+  tidy(coeftest(model0, vcov=vcovHC(model0, type="sss", cluster="time"),
+  caption = "Pooled model with clustering around time")))
+  
+# standard error clustered by country 
+model0_cluster_country <- kable(
+  tidy(coeftest(model0, vcov=vcovHC(model0, type="sss", cluster="group"),
+  caption = "Pooled model with clustering around country")))
+```
+
+# Two-fold cross validation - pre and post cold war
+
+# 1) Separate test data from validation set.
+Take out the test data set (just a few years) and then split for the validation data. In my dataset, I carve out observations from two years (2021 and 2022) as my test data. 
+
+Within the test data, I split the data in to two groups: pre and post Cold War with a threshold of 1990. I create several models based on the pre-Cold War era and generate model evaluation metrics by applying the models to the post Cold War era. 
+
+
+```{r}
+library(groupdata2)
+library(cvms)
+library(xpectr)
+set_test_seed(1)
+
+validation <- data_controls[data_controls$year >= 2021, ]
+```
+
+# Experiment 1: Random CV 
+```{r}
+#define normalization function
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x)))
+}
+
+data_controls$ccode_iso<-as.factor(data_controls$ccode_iso)
+# Remove the country variable from the training data
+data_controls <- data_controls[, !(names(data_controls) %in% c("ccode_iso", "year"))]
+data_controls <- data_controls[, !(names(data_controls) %in% c("democracy"))]
+
+set.seed(1)
+
+split <- rsample::initial_split(data_controls, prop = 0.7, strata = "dd_democracy")
+trainN <- rsample::training(split)
+testN <- rsample::testing(split)
+
+model0 <- glm(
+  formula = dd_democracy ~ . - Segment,
+  family = "binomial",
+  data = trainN)
+
+visreg(model0, xvar = "Clout", by = "dd_democracy", scale = "linear")
+
+model0_pred<-predict(model0, testN, type = "response")
+
+model0_diagnosis <- as.factor(ifelse(model0_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model0_diagnosis), as.factor(testN$dd_democracy))
+
+```
+# Experiment 2: LIWC features only
+```{r}
+
+data$ccode_iso<-as.factor(data$ccode_iso)
+# Remove the country variable from the training data
+data <- data[, !(names(data) %in% c("ccode_iso", "year"))]
+
+split <- rsample::initial_split(data, prop = 0.7, strata = "dd_democracy")
+trainN <- rsample::training(split)
+testN <- rsample::testing(split)
+
+model1 <- glm(
+  formula = dd_democracy ~ . - Segment,
+  family = "binomial",
+  data = trainN)
+
+visreg(model1, xvar = "power", by = "dd_democracy", scale = "linear")
+
+model1_pred<-predict(model1, testN, type = "response")
+
+model1_diagnosis <- as.factor(ifelse(model1_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model1_diagnosis), as.factor(testN$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = testN$dd_democracy, 
+    predictor = model1_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+
+# general text and the speech 
+
+# run random forest, run and compare and see if the same features show as important.
+# if they hit on a few similar things, that bring the stronger argument for the impt of features. 
+
+
+# even if the model underperforms in certain contexts, i can explain the errors. 
+
+```
+
+# Experiment 2b: LIWC features only with a smaller dataset
+When I trained the model with only a small number of training dataset and tested against a large number test dataset, the model perform poorly, as expected. 
+```{r}
+# Remove the country variable from the training data
+data <- data[, !(names(data) %in% c("ccode_iso", "year"))]
+
+split <- rsample::initial_split(data, prop = 0.7, strata = "dd_democracy")
+testN <- rsample::testing(split)
+
+small_trainN <- data %>%
+  sample_n(size = 100, replace = FALSE) 
+
+model1b <- glm(
+  formula = dd_democracy ~ . ,
+  family = "binomial",
+  data = small_trainN)
+
+model1b_pred<-predict(model1b, testN, type = "response")
+
+model1b_diagnosis <- as.factor(ifelse(model1b_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model1b_diagnosis), as.factor(testN$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = testN$dd_democracy, 
+    predictor = model1b_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+
+# general text and the speech 
+
+# run random forest, run and compare and see if the same features show as important.
+# if they hit on a few similar things, that bring the stronger argument for the impt of features. 
+
+
+# even if the model underperforms in certain contexts, i can explain the errors. 
+
+```
+# Experiment 3: Country level meta data only
+
+I train the model using country-year level meta data alone. Caveat here is that some of the input features from the V-Dem data set are highly correlated with the output feature, "dd_democracy." However, this model shows a high level of accuracy score of 91%. 
+
+```{r}
+# Remove the country variable from the training data
+controls_only <- controls_only[, !(names(controls_only) %in% c("ccode_iso", "year", "democracy"))]
+
+split <- rsample::initial_split(controls_only, prop = 0.7, strata = "dd_democracy")
+trainN <- rsample::training(split)
+testN <- rsample::testing(split)
+
+model2 <- glm(
+  formula = dd_democracy ~ .,
+  family = "binomial",
+  data = trainN)
+
+visreg(model2, xvar = "v2x_civlib", by = "ht_colonial", scale = "linear")
+
+model2_pred<-predict(model2, testN, type = "response")
+
+model2_diagnosis <- as.factor(ifelse(model2_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model2_diagnosis), as.factor(testN$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = testN$dd_democracy, 
+    predictor = model2_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+```
+
+# Experiment 3: training on Pre-Cold war, testing on post-cold war
+This is a harder test. I train the model using LIWC features alone and test its performance in post-cold war era. 
+
+Accuracy : 0.6989    
+Sensitivity : 0.5752          
+Specificity : 0.7860  
+
+Change in the number of democracies after the Cold War. Predicting less democracy because it hasn't seen that many democracies.
+
+```{r}
+data <- cbind(y, id, liwc_inputs)
+pre <- data[data$year < 1990, ] #dimension 4430 X 121
+post <- data[data$year >= 1990, ] # dimension 6138 X 121
+
+# Remove the country variable from the training data
+pre <- pre[, !(names(pre) %in% c("ccode_iso", "year", "democracy"))]
+post <- post[, !(names(post) %in% c("ccode_iso", "year", "democracy"))]
+
+model3 <- glm(
+  formula = dd_democracy ~ .,
+  family = "binomial",
+  data = pre)
+
+visreg(model3, xvar = "v2x_civlib", by = "ht_colonial", scale = "linear")
+
+model3_pred<-predict(model3, post, type = "response")
+
+model3_diagnosis <- as.factor(ifelse(model3_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model3_diagnosis), as.factor(post$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = post$dd_democracy, 
+    predictor = model3_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+
+```
+
+# Experiment 4: Splitting based on English-speaking countries
+separate out countries by removing a set of countries, english speaking countries vs. non-english speaking countries. (translator as a confounder)
+
+- First, load in the meta data about which language the leader chose. "Speeches are typically delivered in the native language. Based on the rules of the Assembly, all statements are then translated by UN staff into the six official languages of the UN. If a speech was delivered in a language other than English, Baturo et al.(2017) used the official English version provided by the UN. Therefore, all of the speeches in the UNGDC are in English."
+
+Canada and Romanis provided both English and French speeches. 
+```{r}
+library(readxl)
+language <-read_excel("~/Desktop/UNGDC/data/raw/language.xlsx")
+language <- language%>%select(year="Year", ccode_iso = "ISO Code",lang = "Language" )
+
+# Note that NA values are treated as 0. 
+language <- language %>% 
+  mutate(eng = ifelse(
+    lang %in% c("English"), 1, 0)) %>%
+  replace_na(0)%>%
+  select(-lang)  
+
+#baseline data includes liwc_inputs only
+data <- cbind(y, id, liwc_inputs)
+
+data<-data%>%
+  inner_join(language, by=c("ccode_iso", "year"))
+```
+
+# Train dataset based on non-english and test against english
+```{r}
+eng <- data[data$eng==1, ] #dimension 99 X 122
+non_eng <- data[data$eng !=1, ] # dimension 7171 X 122
+
+# Remove the country variable from the training data
+non_eng <- non_eng[, !(names(non_eng) %in% c("ccode_iso", "year", "democracy"))]
+eng <- eng[, !(names(eng) %in% c("ccode_iso", "year", "democracy"))]
+
+model4 <- glm(
+  formula = dd_democracy ~ .,
+  family = "binomial",
+  data = non_eng)
+
+model4_pred<-predict(model4, eng, type = "response")
+
+model4_diagnosis <- as.factor(ifelse(model4_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model4_diagnosis), as.factor(eng$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = eng$dd_democracy, 
+    predictor = model4_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+
+
+```
+
+# Experiment 5: Train dataset based on non-english and test on english
+```{r}
+eng <- data[data$eng==1, ] #dimension 99 X 122
+non_eng <- data[data$eng !=1, ] # dimension 7171 X 122
+
+# Remove the country variable from the training data
+non_eng <- non_eng[, !(names(non_eng) %in% c("ccode_iso", "year", "democracy"))]
+eng <- eng[, !(names(eng) %in% c("ccode_iso", "year", "democracy"))]
+
+model5 <- glm(
+  formula = dd_democracy ~ .,
+  family = "binomial",
+  data = eng)
+
+model5_pred<-predict(model4, non_eng, type = "response")
+
+model5_diagnosis <- as.factor(ifelse(model5_pred > 0.5, 1,0))
+
+# Compute confusion matrix
+caret::confusionMatrix(as.factor(model5_diagnosis), as.factor(non_eng$dd_democracy))
+
+# sensitivity is the true positive rate
+# specificity is the true negative rate
+
+ROC<-roc(response = non_eng$dd_democracy, 
+    predictor = model5_pred,
+    levels = c(1, 0))
+
+plot(ROC, col = "blue", main = "ROC Curve for Democracy Classifier")
+aucValue <- auc(ROC)
+print(paste("AUC:", aucValue))
+text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)), 
+     cex = 1.2, col = "blue")
+
+#save.image(file='exp5.RData')
+```
+
