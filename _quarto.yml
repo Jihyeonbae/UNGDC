@@ -2,7 +2,6 @@ project:
   type: website
   output-dir: docs
   render:
-    - "index.qmd"
     - "README.md" 
     - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
     - "jupyter_notebook/functions_for_bert.ipynb"
