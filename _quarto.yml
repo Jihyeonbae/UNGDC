@@ -2,7 +2,7 @@ project:
   type: website
   output-dir: docs
   render:
-    - "README.md" 
+    - "index.md" 
     - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
     - "jupyter_notebook/functions_for_bert.ipynb"
  
@@ -14,7 +14,7 @@ website:
   sidebar:
     contents:
       - text: "Welcome"
-        href: README.md
+        href: index.md
       - section: Topic Modeling
         contents:       
           - text: Topic Modeling 1
