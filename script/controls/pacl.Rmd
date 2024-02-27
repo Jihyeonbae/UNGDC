@@ -1,0 +1,80 @@
+---
+title: "democracy_dictatorship"
+author: "Jihyeon bae"
+date: "2023-10-19"
+output: 
+  html_document:
+      number_sections: TRUE
+---
+
+```{r setup, include=FALSE}
+#just a generic list of packages 
+library("pacman")
+p_load(plyr, dplyr, ggplot2, tidyverse,haven, stevemisc, magrittr, readxl, 
+       #for easy data downloading
+       peacesciencer, vdemdata, democracyData, rqog, psData)
+
+```
+
+# Democracy and Dictatorship Dataset
+
+Cheibub's (2004) dataset goes by many different names, as it has been updated by different teams. 
+These are all basically the same.
+- PACL: as in Przeworski, Alvarez, Cheibub, and Limongi (2000) 
+- ACLP: as in Alvarez, Cheibub, Limongi, and Przeworski (1996)
+- CGV: as in Cheibub, Gandhi, Vreeland (2004)
+- BR: as in Bjørnskov Rode (2020)
+
+## PACL data by Cheibub, Ghandhi, and Vreeland (2004), updated by Bjørnskov and Rode (2020)
+
+```{r}
+#I use democracyData package to load PACL data. 
+pacl <- democracyData::pacl_update %>% 
+  filter(year>=1946) %>%
+  dplyr::select(isocode=pacl_update_country_isocode, #three letter ISO code
+                gwcode=GWn, #Gleditsch and Ward's countrycode
+                ccode=cown, #correlates of war numeric country code, 2016 version
+                year, 
+                dd_regime=DD_regime, #categorical variable for regime type
+                dd_democracy=Democracy) #democracy yes or no 
+```
+
+# I'm suspicious how PACL (based on GW) has COW countrycode. 
+```{r}
+View(pacl[is.na(pacl$ccode)==TRUE,])
+#I checked countries that do not match. All make sense except for these cases, where they were simply omitted even when COW does have a corresponding code.
+
+pacl$ccode[pacl$isocode == "HKG"] <- 997 #Hong Kong 
+```
+
+
+### Bonus section
+Notice that PACL is based on GW system. Manually check where these mismatches occur, to make sure these are not critical. 
+```{r}
+#Before merging, check which cells do not match
+#"master" dataframe is the main file based on COW list.
+View(master %>%
+     anti_join(pacl, 
+               by=c("country_text_id"="isocode")))
+#Some of the country names are different between COW baseline and PACL data. But it's okay as long as key identifiers match.
+
+#This is where a collision between GW and COW shows up.
+
+View(master %>%
+     anti_join(pacl, 
+               by=c("gwcode"="gwcode")))
+
+#There are 17 cases(German Democratic Republic, Kosovo, Yemen People's Republic) that shows up in COW, but not in PACL data.
+
+master<-left_join(master, pacl,
+              by=c('ccode', 'year', 'gwcode'))
+```
+
+# Save data as a .csv file
+```{r}
+#Now that I've checked where mismatches occur, I don't need gwcode and country name.
+pacl<-pacl%>%
+  select(ccode, year, dd_regime, dd_democracy)
+
+write.csv(pacl, "~/Desktop/UNGDC/data/raw/controls/pacl.csv")
+```

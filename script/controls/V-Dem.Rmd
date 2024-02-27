@@ -1,0 +1,79 @@
+---
+title: "V-Dem"
+author: "Jihyeon bae"
+date: "2023-10-19"
+output: 
+  html_document:
+      number_sections: TRUE
+---
+
+```{r setup, include=FALSE}
+library("pacman")
+p_load(plyr, dplyr, ggplot2, tidyverse,haven, stevemisc, magrittr, readxl, 
+       #for easy data downloading
+       peacesciencer, vdemdata, democracyData, rqog, psData)
+
+```
+
+# Variables from V-Dem Dataset
+
+```{r}
+vdem<-vdemdata::vdem%>% 
+  filter(year>=1946)%>%
+  select(ccode=COWcode, #COWcode is renamed as "ccode"
+         year,
+         v2x_polyarchy, #electoral democracy index
+         v2x_libdem, #liberal democracy index
+         v2x_freexp_altinf, #freedom of expression and alternative sources of information 
+         v2x_frassoc_thick, #freedom of association thick index
+         v2xel_locelec, #local government index
+         v2xel_regelec, #regional government
+         v2eltype_0, #types of elections from 0 to 6
+         v2eltype_1,
+         v2eltype_2,
+         v2eltype_3,
+         v2eltype_4,
+         v2eltype_5,
+         v2eltype_6,#election type
+         v2mecenefm, # gov censorship effort
+         v2mecenefi, #internet censorship effort
+         v2mecenefibin, #internet binary
+         v2mecrit, # print/broadcast media critical
+         v2mefemjrn, #female journalists
+         v2meharjrn, #harassment of journalists
+         v2mebias, #media bias
+         v2mecorrpt, #media corrupt
+         v2meslfcen, #media self censorship
+         v2x_accountability, #accountability
+         v2x_horacc, #horizontal accountability
+         v2x_diagacc, #diagonal accountability
+         v2xnp_regcorr, #regime corruption
+         v2x_civlib, #civil liberties index
+         v2x_clphy, #physical violence
+         v2x_clpol, #political and civil liberties
+         v2x_clpriv, #private civil liberties
+         v2x_corr, #political corruption
+         v2x_pubcorr, #public sector corruption
+         v2jucorrdc, #judicial corruption decision
+         v2x_rule, #rule of law
+         v2xcl_acjst, #access to justice
+         v2xcs_ccsi, #core civil society 
+         v2x_freexp, #freedom of expression 
+         v2xme_altinf, #alternative sources of information
+         v2smgovdom, #government dissemination of false information domestic
+         v2smgovfilcap, #government internet filtering capacity
+         v2smgovfilprc, #gov internet filtering in practice
+         v2smgovshutcap, #gov internet shut down capacity
+         v2smgovshut, #gov internet shut down in practice
+         v2xedvd_me_cent #centralization of media control
+         )
+
+
+#Check rows that have NA values by variables
+vdem[is.na(vdem$v2x_polyarchy),]
+#Two cases of NAs from Turkmenistan and Kazakhstan in 1990.  
+```
+# Save this data as a .csv file
+```{r}
+vdem<-write.csv(vdem, "~/Desktop/UNGDC/data/raw/controls/vdem.csv")
+```

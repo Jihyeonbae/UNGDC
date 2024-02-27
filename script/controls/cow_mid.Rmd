@@ -1,0 +1,38 @@
+---
+title: "COW_mid"
+author: "Jihyeon bae"
+date: "2023-10-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#just a generic list of packages 
+library("pacman")
+p_load(plyr, dplyr, tidyverse, haven, stevemisc, magrittr, readxl, 
+       #for easy data downloading
+       peacesciencer)
+```
+
+# COW MID Data
+```{r}
+cow_mid<-read_csv("dyadic_mid_4.02.csv") %>%
+  filter(year>=1946) %>%
+  select(disno, ccode=statea, stateb, year) 
+
+#Now I create two variables 
+mid <- cow_mid %>%
+  complete(expand.grid(ccode=unique(cow_mid$ccode),
+                       year=1946:2022)) %>%
+  group_by(ccode, year) %>%
+  summarize(
+    mid_dispute = sum(!is.na(disno) & disno >= 1),
+    mid_num_dispute = sum(mid_dispute)
+  ) %>%
+  ungroup()
+```
+
+# Save output as a csv file
+```{r}
+write.csv(mid, "~/Desktop/UNGDC/data/raw/controls/cow_mid.csv")
+```
+

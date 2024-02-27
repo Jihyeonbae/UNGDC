@@ -1,0 +1,140 @@
+---
+title: "ucdp_prio"
+author: "Jihyeon bae"
+date: "2023-10-21"
+output: html_document
+---
+
++ things to change
+  - expand 1989:2022
+  - add COW country code
+
+```{r setup, include=FALSE}
+#just a generic list of packages 
+library("pacman")
+p_load(plyr, dplyr, tidyverse, haven, stevemisc, magrittr, readxl, 
+       #for easy data downloading
+       peacesciencer)
+```
+
+# UCDP_PRIO Armed Conflict
+```{r}
+#Manually downloading UCDP PRIO armed conflicts dataset
+ucdp_prio<-readRDS("~/Downloads/UcdpPrioConflict_v23_1.rds") 
+```
+
+
+## Compare with the one loaded by peacesciencr package
+<!--
+temp_for_comparison <- cow %>%
+  add_ucdp_acd(type="interstate",#options:extrasystemic, intrastate, II(internationalized intrastate)
+               only_wars=FALSE) 
+-->
+
+* Using peacesciencer is limited here. It only provides information about the case with the maximum degree of intensity. 
+
+
+## Modifying peacesciencer package to create own variables
+```{r}
+ucdp_prio %>%
+  filter(year>=1946)%>%
+  select(conflict_id, year, gwno_a, gwno_a_2nd, gwno_b, gwno_b_2nd,
+         incompatibility, intensity_level, type_of_conflict) -> ucdp_prio
+
+#slicing column 
+ucdp_prio %>%
+  mutate(gwno_a = strsplit(as.character(gwno_a), ",")) %>%
+    unnest(gwno_a) %>%
+  mutate(gwno_a_2nd = strsplit(as.character(gwno_a_2nd), ",")) %>%
+    unnest(gwno_a_2nd) %>%
+  mutate(gwno_b = strsplit(as.character(gwno_b), ",")) %>%
+    unnest(gwno_b) %>%
+  mutate(gwno_b_2nd = strsplit(as.character(gwno_b_2nd), ",")) %>%
+    unnest(gwno_b_2nd) -> ucdp_prio
+
+ucdp_prio %>%
+  mutate_at(vars("gwno_a", "gwno_a_2nd", "gwno_b", "gwno_b_2nd"), ~as.numeric(.)) -> ucdp_prio
+
+#Changing numeric code into characters 
+ucdp_prio %>%
+  mutate(type_of_conflict = case_when(
+    type_of_conflict == 1 ~ "extrasystemic",
+    type_of_conflict == 2 ~ "interstate",
+    type_of_conflict == 3 ~ "intrastate",
+    type_of_conflict == 4 ~ "II"
+  )) -> ucdp_prio
+
+
+#Changing numeric code into characters
+ucdp_prio %>%
+  mutate(incompatibility = case_when(
+    incompatibility == 1 ~ "territory",
+    incompatibility == 2 ~ "government",
+    incompatibility == 3 ~ "both"
+  )) -> ucdp_prio
+
+
+# Convert the dataset to long format
+# 4 participants(a, 2nd_a, b, 2nd_b) are counted as "country involved in a conflict"
+long_ucdp_prio <- gather(ucdp_prio, key = "variable", value = "value", 
+                         -c(conflict_id, year, type_of_conflict, incompatibility,intensity_level))
+
+long_ucdp_prio <- long_ucdp_prio[, c("conflict_id", "year", "value", 
+                                     "type_of_conflict", "incompatibility", "intensity_level")]%>%
+                  rename(gwcode=value)
+```
+
+## Expanding data into a panel
+```{r}
+# panel data template
+## Create a template with all countries and years from 1946 to 2022
+country_template <- data.frame(
+  gwcode = rep(unique(long_ucdp_prio$gwcode), each = 77),
+  year = rep(1946:2022, times = n_distinct(long_ucdp_prio$gwcode))
+)
+
+ucdp_prio <- left_join(country_template, long_ucdp_prio, 
+                       by = c("gwcode", "year")) %>%
+  #Replacing intensity_level=NA into 0.
+  replace_na(list(intensity_level = 0))%>%
+  #Adding COW code to GW code
+  mutate(ccode=countrycode::countrycode(gwcode, "gwn", "cown")) 
+
+ucdp_prio$gwcode[ucdp_prio$gwcode == 816] <- 816 
+# Vietnam is coded as Vietnam, Democratic Republic of in GW system.
+ucdp_prio$gwcode[ucdp_prio$gwcode == 972] <- 955
+# Tonga is coded as 972 in GW, but 955 in COW. 
+```
+* Warning sign might pop-up, but it's okay. Just 2 cases where GW and COW systems don't match. 
+* Mismatches are 816 () and 972 (Tonga). R package `countrycode` failed to capture these two. 
+
+## Creating 4 variables
+```{r}
+up <- ucdp_prio %>%
+  group_by(ccode, year) %>%
+  summarize(up_num_conflict=sum(intensity_level== 1),
+         up_conflict=ifelse(up_num_conflict>=1, 1, 0),
+         up_num_war=sum(intensity_level== 2),
+         up_war=ifelse(up_num_war>=1, 1, 0))
+```
+
+# Save as a csv file
+```{r}
+write.csv(up, "~/Desktop/UNGDC/data/raw/controls/ucdp_prio.csv")
+write.csv(ucdp_prio, "ucdp_prio_wide.csv")
+```
+
+# Bonus: Another easy option is using QOG variables  
+```{r}
+ucdp<-qog%>%
+  filter(year>=1989)%>%
+  select(ucdp_type1, ucdp_type2, ucdp_type3, ucdp_type4,
+         ccode=ccodecow, year)%>%
+  replace_na(list(ucdp_type1= 0))%>% #extrasystemic
+  replace_na(list(ucdp_type2= 0))%>% #interstate
+  replace_na(list(ucdp_type3= 0))%>% #intrastate
+  replace_na(list(ucdp_type4= 0)) %>%#internationalized intrastate
+  mutate(up_num_conflict=ucdp_type1+ucdp_type2+ucdp_type3+ucdp_type4) %>%
+  mutate(up_conflict=ifelse(up_num_conflict>0,1,0))
+```
+
