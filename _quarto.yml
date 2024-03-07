@@ -31,7 +31,7 @@ website:
       - section: Linguistic Analysis
         contents:
           - text: LIWC
-            href: rmarkdown/liwc_analysis_0215.qmd 
+            href: rmarkdown/liwc_analysis.qmd 
       - section: BERT
         contents:
           - text: BERT Functions
