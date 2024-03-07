@@ -16,6 +16,7 @@ To compare the performance of logistic regression, we use non-parametric random 
 library(readr)
 library(corrr)
 library(ggplot2)
+library(gmodels)
 library(dplyr)
 library(tidyverse)
 library(countrycode)
@@ -60,7 +61,7 @@ As a baseline, the first trial keeps all of the LIWC features to the random fore
 
 Functionally, we use R packages [@randomForestExplainer; @randomForest] to generate various metrics of Importance. 
 
-```{r}
+```{r }
 set.seed(3)
 split <- rsample::initial_split(data, prop=0.7, strata="dd_democracy")
 trainN <- rsample::training(split)
@@ -84,7 +85,7 @@ bag.democracy <- randomForest(dd_democracy ~ .,
 # setting type to 1 selects Mean Accuracy Decrease, not Gini Coefficient. 
 importance(bag.democracy,  type=1, scale = TRUE) %>%
   as.data.frame() %>%
-  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(10) %>%
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(20) %>%
   kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
   scroll_box(width = "100%", height = "400px") 
 
@@ -94,7 +95,7 @@ varImpPlot(bag.democracy, type=1, scale = TRUE, sort=T, n.var= 25, main= "Democr
 importance_frame <- measure_importance(bag.democracy)
 importance_frame%>%
   as.data.frame()%>%
-  arrange(desc(abs(p_value)))%>% head(10) %>%
+  arrange(desc(abs(p_value)))%>% head(20) %>%
   kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
   scroll_box(width = "100%", height = "400px") 
 
@@ -138,7 +139,7 @@ WPS is correlated with the percentage of "preposition" words and "determiners." 
 ```{r, warning=FALSE}
 trainN %>% 
     correlate() %>% 
-    focus(WPS) %>% arrange(desc(abs(WPS))) %>%head(10) %>%
+    focus(WPS) %>% arrange(desc(abs(WPS))) %>%head(20) %>%
   kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
   scroll_box(width = "100%", height = "400px") 
 ```
@@ -272,7 +273,9 @@ To understand the substantively important features, grouped by components, we ch
 ```{r}
 importance(bag.democracy.pca,  type=1, scale = TRUE) %>%
   as.data.frame() %>%
-  arrange(desc(abs(MeanDecreaseAccuracy))) %>% head(10) |> kable()
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>% head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
 
 ggplot(data = NULL) +
   geom_segment(data = as.data.frame(pca_result$rotation), 
@@ -326,7 +329,9 @@ RT.evlau2
 # Importance matrix
 importance(bag.democracy2, type=1, scale = TRUE) %>%
   as.data.frame() %>%
-  arrange(desc(MeanDecreaseAccuracy))
+  arrange(desc(MeanDecreaseAccuracy)) %>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
 
 
 ```
@@ -378,16 +383,12 @@ RT.evlau3 <- caret::confusionMatrix(as.factor(testN$dd_democracy),
                                    dnn = c("Reference","Prediction"))
 RT.evlau3
 
-# Generating cross table
-library(gmodels)
-CrossTable(testN$dd_democracy, bag.RT.pred3,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = TRUE, prop.t = FALSE,
-           dnn = c('actual default', 'predicted default'))
+
 
 # Importance matrix
 importance(bag.democracy3) %>%
   as.data.frame() %>%
-  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(10) %>%
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(20) %>%
   kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
   scroll_box(width = "100%", height = "400px") 
 ```
@@ -435,12 +436,18 @@ RT.evlau4
 # Importance matrix
 importance(bag.democracy4) %>%
   as.data.frame() %>%
-  arrange(desc(abs(MeanDecreaseAccuracy)))%>%head(10) %>%
+  arrange(desc(abs(MeanDecreaseAccuracy)))%>%head(20) %>%
   kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
   scroll_box(width = "100%", height = "400px") 
 ```
 
 Random forest models did not show a better performance than logistic regression. We attribute this marginal performance to the fact that binary outcome is balanced. Previous studies have merited random forests to study rare events (@Muchlinski2016, @Wang2019).
+
+# Hierarchical clustering
+- scaling issue
+- within country see how that changes
+- continuous variable for the output
+
 
 
 # References
