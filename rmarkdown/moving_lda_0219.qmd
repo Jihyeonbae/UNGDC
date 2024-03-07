@@ -2,7 +2,7 @@
 title: "Moving LDA Version - Inverse Weighted"
 format: html
 editor: visual
-bibliography: references.bib
+bibliography: ../references.bib
 ---
 
 ## Introduction

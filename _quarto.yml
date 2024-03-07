@@ -4,21 +4,34 @@ project:
   render:
     - "index.md" 
     - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
+    - "rmarkdown/moving_lda_0219.qmd"
+    - "rmarkdown/liwc_analysis.qmd" 
     - "jupyter_notebook/functions_for_bert.ipynb"
+  
+
  
   execute-dir: project
   
+bibliography: references.bib
     
 website:
   title: "UN General Debates Speech Analysis"
+
   sidebar:
     contents:
       - text: "Welcome"
         href: index.md
       - section: Topic Modeling
         contents:       
-          - text: Topic Modeling 1
+          - text: Decadal LDA
             href: rmarkdown/UNGDC_topic_modeling_updated.qmd
+          - text: Moving LDA
+            href: rmarkdown/moving_lda_0219.qmd
+     
+      - section: Linguistic Analysis
+        contents:
+          - text: LIWC
+            href: rmarkdown/liwc_analysis_0215.qmd 
       - section: BERT
         contents:
           - text: BERT Functions
