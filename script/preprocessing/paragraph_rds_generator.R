@@ -21,59 +21,8 @@ df <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# Loop through each file
-for (file in selected_files) {
-  # Read file content
-  content <- readLines(file, warn = FALSE)
-
-  # Initialize variables for paragraph text and index
-  paragraph_texts <- character()
-  paragraph_index <- 1
-
-  # Loop through each line of the file text
-  for (line in content) {
-    # Check if the line is empty
-    if (line == "") {
-      # If the paragraph text is not empty, store it in the dataframe
-      if (length(paragraph_texts) > 0) {
-        # Remove \f character and extra spaces from the paragraph texts
-        cleaned_texts <- gsub("\\s+", " ", gsub("\\f", "", paragraph_texts))
-
-        # Create a dataframe row for the paragraph
-        df_row <- data.frame(
-          ccode_iso = file_info[1],  # Replace with actual values
-          session = as.numeric(file_info[2]),  # Replace with actual values
-          year = as.numeric(file_info[3]),  # Replace with actual values
-          paragraph_index = paragraph_index,
-          text = paste(cleaned_texts, collapse = " "),  # Concatenate cleaned paragraph texts
-          stringsAsFactors = FALSE
-        )
-        # Append the dataframe row to the main dataframe
-        df <- rbind(df, df_row)
-        # Reset paragraph texts
-        paragraph_texts <- character()
-        # Increment paragraph index
-        paragraph_index <- paragraph_index + 1
-      }
-    } else {
-      # Append the line to the current paragraph text
-      paragraph_texts <- c(paragraph_texts, line)
-    }
-  }
-}
-
-# Write the dataframe to a CSV file
-write.csv(df, "paragraphs.csv", row.names = FALSE)
-
-
-
-
-
-##############################################################################
-
-
 # trial 2
-for (file in files) {
+for (file in selected_files) {
   print(paste("Processing file:", basename(file)))  # Debugging output
 
   # Read the content of the file with error handling
