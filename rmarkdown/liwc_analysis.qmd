@@ -258,6 +258,16 @@ model1 <- glm(
   family = "binomial",
   data = trainN)
 
+model_summary3<-modelsummary(model1, 
+                             stars = TRUE, 
+                             output = "kableExtra", 
+                             escape = FALSE)
+
+model_summary3%>%kable_classic(full_width=F, html_font = "Cambria")%>%
+    scroll_box(width = "100%", height = "600px")
+   
+
+
 model1_pred<-predict(model1, testN, type = "response")
 
 model1_diagnosis <- as.factor(ifelse(model1_pred > 0.5, 1,0))
@@ -689,184 +699,27 @@ for (cont in unique(data_controls$continent)) {
 }
 ```
 
-
-# Random Forest Experiment
-
-Random Forest approach bootstraps samples multiple times with  replacement. For each iteration, a decision tree is built and the algorithm trains the model through all the trees. The model uses the majority vote from all trees to reach a conclusion. 
-
-## Trial 1: Including WC, WPS, Period
-               Type of random forest: classification
-                     Number of trees: 500
-No. of variables tried at each split: 118
-
-        OOB estimate of  error rate: 24.28%
-Confusion matrix:
-     0    1 class.error
-0 2563  859   0.2510228
-1  784 2561   0.2343797
-
-
-Confusion Matrix and Statistics
-
-         Prediction
-Reference    0    1
-        0 1081  380
-        1  341 1077
-                                          
-               Accuracy : 0.7496          
-                 95% CI : (0.7333, 0.7653)
-    No Information Rate : 0.5061          
-    P-Value [Acc > NIR] : <2e-16          
-                                          
-                  Kappa : 0.4992          
-                                          
- Mcnemar's Test P-Value : 0.157           
-                                          
-            Sensitivity : 0.7392          
-            Specificity : 0.7602          
-         Pos Pred Value : 0.7595          
-         Neg Pred Value : 0.7399          
-             Prevalence : 0.5061          
-         Detection Rate : 0.3741          
-   Detection Prevalence : 0.4925          
-      Balanced Accuracy : 0.7497          
-                                          
-       'Positive' Class : 1   
-```{r}
-require(randomForest) || install.packages("randomForest", dependencies = T)
-library(randomForest)
-library(randomForestExplainer)
-
-set.seed(3)
-
-split <- rsample::initial_split(data, prop=0.7, strata="dd_democracy")
-trainN <- rsample::training(split)
-trainN$dd_democracy<-factor(trainN$dd_democracy)
-testN <- rsample::testing(split)
-
-trainN <- trainN[, !(names(trainN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
-testN <- testN[, !(names(testN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
-
-# Remove rows with missing values
-trainN <- na.omit(trainN)
-
-# Fit random forest model after removing missing values
-bag.democracy <- randomForest(dd_democracy ~ ., 
-                               data = trainN, 
-                               ntree = 500,
-                               mtry = ncol(trainN) - 1,
-                               importance = TRUE)
-
-varImpPlot(bag.democracy, sort=T, n.var= 25, main= "Democracy vs. Non-democracy", pch=16)
-
-bag.RT.pred <- predict(bag.democracy, newdata = testN) 
-RT.pred <- predict(bag.democracy, newdata=testN, type="class")
-RT.evlau <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
-                                   RT.pred, 
-                                   positive = "1",
-                                   dnn = c("Reference","Prediction"))
-RT.evlau
-
-# ROC curve and AUC
-
-RT.pred2 <- predict(bag.democracy, newdata=testN, type="prob")
-roc_RT.tree1 <- roc(as.factor(testN$dd_democracy), RT.pred2[,"1"])
-par(mfrow=c(1,1))
-plot(roc_RT.tree1, main="ROC curve for Random Forest", 
-     col="blue", lwd=2, legacy.axes=FALSE)
-title(main = paste('Area under the curve: ',auc(roc_RT.tree1)))
-
-# Generating cross table
-library(gmodels)
-CrossTable(testN$dd_democracy, bag.RT.pred,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = TRUE, prop.t = FALSE,
-           dnn = c('actual default', 'predicted default'))
-
-# Importance matrix
-importance(bag.democracy) %>%
-  as.data.frame() %>%
-  arrange(desc(MeanDecreaseAccuracy))
+# LIWC on no_stop_words
+```{r, eval = FALSE}
+"~/Desktop/UNGDC/data/liwc/no_stop_words_analyzed.csv"
 ```
 
 
+#Logit Boost
 
-## Trial 2: excluding WC, WPS, and Period
+```{r, eval = FALSE}
+library(caTools)
+  Data = data_controls
+  model = LogitBoost(Data, dd_democracy, nIter=20)
+  Lab   = predict(model, Data)
+  Prob  = predict(model, Data, type="raw")
+  t     = cbind(Lab, Prob)
+  t[1:10, ]
 
-OOB estimate of error rate slightly increased around 0.5 percentage point(%p) after removing WC, WPS, and Period. Prediction accuracy against testN slightly dropped to 0.74 accordingly. 
+  # two alternative call syntax
+  p=predict(model,Data)
+  q=predict.LogitBoost(model,Data)
+  pp=p[!is.na(p)]; qq=q[!is.na(q)]
+  stopifnot(pp == qq)
 
-
-Type of random forest: classification
-                     Number of trees: 500
-No. of variables tried at each split: 115
-
-        OOB estimate of  error rate: 24.78%
-        
-        
-Confusion Matrix and Statistics
-
-         Prediction
-Reference    0    1
-        0 1050  411
-        1  335 1083
-                                          
-               Accuracy : 0.7409          
-                 95% CI : (0.7245, 0.7568)
-    No Information Rate : 0.5189          
-    P-Value [Acc > NIR] : < 2.2e-16       
-                                          
-                  Kappa : 0.4821          
-                                          
- Mcnemar's Test P-Value : 0.006034        
-                                          
-            Sensitivity : 0.7249          
-            Specificity : 0.7581          
-         Pos Pred Value : 0.7638          
-         Neg Pred Value : 0.7187          
-             Prevalence : 0.5189          
-         Detection Rate : 0.3762          
-   Detection Prevalence : 0.4925          
-      Balanced Accuracy : 0.7415          
-                                          
-       'Positive' Class : 1   
-       
-```{r}
-trainN <- trainN[, !(names(trainN) %in% c("ccode_iso", "year", "session", "dd_regime", "WC", "WPS", "Period"))]
-testN <- testN[, !(names(testN) %in% c("ccode_iso", "year", "session", "dd_regime", "WC", "WPS", "Period"))]
-
-
-# Remove rows with missing values
-trainN <- na.omit(trainN)
-
-# Fit random forest model after removing missing values
-bag.democracy2 <- randomForest(dd_democracy ~ ., 
-                               data = trainN, 
-                               ntree = 500,
-                               mtry = ncol(trainN) - 1,
-                               importance = TRUE)
-
-varImpPlot(bag.democracy2, sort=T, n.var= 25, main= "Democracy vs. Non-democracy", pch=16)
-
-bag.RT.pred2 <- predict(bag.democracy2, newdata = testN) 
-
-RT.pred2 <- predict(bag.democracy2, newdata=testN, type="class")
-
-RT.evlau2 <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
-                                   RT.pred2, 
-                                   positive = "1",
-                                   dnn = c("Reference","Prediction"))
-RT.evlau2
-
-# Generating cross table
-library(gmodels)
-CrossTable(testN$dd_democracy, bag.RT.pred2,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = TRUE, prop.t = FALSE,
-           dnn = c('actual default', 'predicted default'))
-
-# Importance matrix
-importance(bag.democracy2) %>%
-  as.data.frame() %>%
-  arrange(desc(MeanDecreaseAccuracy))
 ```
-
-
-
