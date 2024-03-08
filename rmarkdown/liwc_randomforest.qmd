@@ -1,0 +1,454 @@
+---
+title: "liwc_randomforest"
+author: "Jihyeon bae"
+date: "`r Sys.Date()`"
+output: html_document
+bibliography: "references.bib"
+---
+
+# Introduction
+
+To compare the performance of logistic regression, we use non-parametric random forest models to see how well a battery of LIWC features can predict the regime type.
+
+## Data and Setup
+
+```{r setup, warning=FALSE, message=FALSE}
+library(readr)
+library(corrr)
+library(ggplot2)
+library(gmodels)
+library(dplyr)
+library(tidyverse)
+library(countrycode)
+library(broom)
+library(knitr) 
+library(readxl)
+library(rsample)
+library(randomForest)
+library(randomForestExplainer)
+library(caret)
+library(pROC)
+library(kableExtra)
+```
+
+# Read in the dataset
+
+This dataset includes two identifiers (ccode_iso, year), all of the LIWC features, as well as the output variable we are aiming to predict. Data generation process for [`data`](%22../data/processed/rf_data.csv%22) can be found at [`liw_analysis.qmd`](%22../rmarkdown/liwc_analysis.qmd%22).
+
+```{r reading in data and pre-processing}
+data<-read_csv("~/Desktop/UNGDC/data/processed/rf_data.csv")
+
+data<-data %>%
+  dplyr::select(-"...1")
+data$year<-as.numeric(data$year)
+data<-data[, c(1:122,149) ]
+
+```
+
+-   The variable "Dic(Dictionary Words)" show the percentage of words in the text that are captured by one or more LIWC feature dictionaries."WC(Word Count)" refers to the total word counts per document, and "WPS(Word Per Sentences)" shows the average number of words for sentences per document. "WPS" is negatively correlated with "Period," in that a speech with long sentences need less periods to end each sentence.
+
+# Random Forest Experiment
+
+Random Forest approach bootstraps samples multiple times with replacement. For each iteration, a decision tree is built and the algorithm trains the model through all the trees. The model uses the majority vote from all trees to reach a conclusion on the given classification task. It is important to explicitly set "dd_democracy," the output variable as a factor variable, so that R recognizes the task as a classification, not a regression model.
+
+The Mean Decrease Accuracy plot expresses how much accuracy the model loses by permuting each variable. The more the accuracy suffers, the more important the variable is for the successful classification. According to the @randomForest R package, the measure is computed from permuting out of bag data. Each tree generates prediction error for out-of-bag data and another prediction error after permuting one variable. Each tree records difference in two errors with and without permutation across all the features, and eventually generates an average. MDA is then divided by the standard deviation value of decrease in accuracy of trees. 
+
+The mean decrease in Gini coefficient is a measure of how each variable contributes to the homogeneity of the nodes and leaves in the resulting random forest. The higher the value of mean decrease accuracy or mean decrease Gini score, the higher the importance of the variable in the model. Since we're interested in the substantive meaning of feature, we focus on the accuracy score instead of Gini coefficient.
+
+## Trial 1: Including WC, WPS, Period
+
+As a baseline, the first trial keeps all of the LIWC features to the random forest model. This hit the accuracy rate of 0.7496. To make sure there is enough observations for both democracy and non-democracy, we use stratified sampling based on the main output of interest, "dd_democracy." This means that the model performance can change when the distribution of the output is different from the current dataset. Our dataset has a well balanced distribution, with 4883 non-democracies and 4763 democracies. We randomly keep 30% of the data as a testing dataset.
+
+Functionally, we use R packages [@randomForestExplainer; @randomForest] to generate various metrics of Importance. 
+
+```{r }
+set.seed(3)
+split <- rsample::initial_split(data, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+# Remove identifier variables. dd_regime is a 6-fold classification that is more comprehensive than dd_democracy.
+trainN <- trainN[, !(names(trainN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
+testN <- testN[, !(names(testN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
+
+# Remove rows with missing values
+trainN <- na.omit(trainN)
+
+# Fit random forest model
+bag.democracy <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+
+# setting type to 1 selects Mean Accuracy Decrease, not Gini Coefficient. 
+importance(bag.democracy,  type=1, scale = TRUE) %>%
+  as.data.frame() %>%
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+
+varImpPlot(bag.democracy, type=1, scale = TRUE, sort=T, n.var= 25, main= "Democracy vs. Non-democracy", pch=16)
+
+# P-value on whether the observed number of successes > the theoretical number of successes if random
+importance_frame <- measure_importance(bag.democracy)
+importance_frame%>%
+  as.data.frame()%>%
+  arrange(desc(abs(p_value)))%>% head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+
+
+
+# scale = TRUE divides the permutation based measures into their "standard errors"
+#The function automatically scales the importance scores to be between 0 and 100. 
+#Using scale = FALSE avoids this normalization step.
+```
+
+### Trial 1 Prediction Performance
+
+```{r}
+bag.RT.pred <- predict(bag.democracy, newdata = testN) 
+RT.pred <- predict(bag.democracy, newdata=testN, type="class")
+RT.evlau <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
+                                   RT.pred, 
+                                   positive = "1",
+                                   dnn = c("Reference","Prediction"))
+RT.evlau
+
+# ROC curve and AUC
+RT.pred.roc <- predict(bag.democracy, newdata=testN, type="prob")
+roc_RT.tree1 <- roc(as.factor(testN$dd_democracy), RT.pred.roc[,"1"])
+par(mfrow=c(1,1))
+plot(roc_RT.tree1, main="ROC curve for Random Forest", 
+     col="blue", lwd=2, legacy.axes=FALSE)
+title(main = paste('Area under the curve: ',auc(roc_RT.tree1)))
+```
+
+### Post Analysis on Trial 1: Understanding WPS
+
+Based on several importance metrics, "WPS" showed up as important features. Given theoretically weak ties between WPS and regime type, we investigate sources of biases in the model. The specific question here is \textit{to what extent is variable "WPS" robust against different modeling strategies and importance metrics selections}?
+
+#### Hypothesis 1: Correlated varaibles
+
+Generally, random forest has a strong performance in even correlated variables. Nevertheless, we check if there are any features that are storngly correlated with WPS.
+
+WPS is correlated with the percentage of "preposition" words and "determiners." These are grammatical terms that are expected to increase with longer sentences in general. "Period" is negatively correlated. In Trial 2, we exclude correlated features and test how robust the model is.
+
+```{r, warning=FALSE}
+trainN %>% 
+    correlate() %>% 
+    focus(WPS) %>% arrange(desc(abs(WPS))) %>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+```
+
+#### Hypothesis 2: WPS has a strong predictive power
+
+It might also be the case that WPS has a predictive power in a substantive manner. To make this null hypothesis as strong as possible, we only use a single feature, "WPS" to predict the output. Our expectation is a poor performance, in that we do not find any strong theoretical ground to expect a correlation between linguistic style to use a long sentence and a regime type.Contrary to our expectation, using WPS as a single predictor showed a great performance with the OOB estimate of error rate as low as 42.43%.
+
+```{r}
+set.seed(4)
+split <- rsample::initial_split(data, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+trainN <- trainN[, (names(trainN) %in% c("WPS", "dd_democracy"))]
+testN <- testN[, (names(testN) %in% c("WPS", "dd_democracy"))]
+
+# Remove rows with missing values
+trainN <- na.omit(trainN)
+
+# Fit random forest model after removing missing values
+bag.democracy.temp <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+bag.democracy.temp
+
+```
+
+We further tried creating a binary variable of long or short sentences on average, based on the "WPS." Using WPS's median value as a threshold, we created a new variable "long," 1 when the WPS is greater than or equal to 29 and 0 otherwise. Using it as the only predictor, we put the variable into a harder test. Even more surprisingly, the error rate turned out to be 35.18%.
+
+```{r}
+wps.vis<-data%>%
+  group_by(dd_democracy)%>%
+  mutate(wps.median=median(WPS), 
+         wps.sd=sd(WPS), 
+         long=ifelse(WPS>=29, 1, 0)
+         )
+
+set.seed(5)
+split <- rsample::initial_split(wps.vis, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+trainN <- trainN[, (names(trainN) %in% c("long", "dd_democracy"))]
+testN <- testN[, (names(testN) %in% c("long", "dd_democracy"))]
+trainN <- na.omit(trainN)
+
+bag.democracy.temp2 <- randomForest(dd_democracy ~ long, 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+bag.RT.pred.temp <- predict(bag.democracy.temp2, newdata = testN) 
+RT.pred.temp <- predict(bag.democracy.temp2, newdata=testN, type="class")
+RT.evlau.temp <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
+                                   RT.pred.temp, 
+                                   positive = "1",
+                                   dnn = c("Reference","Prediction"))
+RT.evlau.temp
+
+```
+
+It requires more theoretical investigation to figure out why a linguistic tendency to use long sentences have a strong explanation for the regime type. We also suspect a confounding effect of whether the speech was translated.
+
+## Trial 2: PCA on LIWC features
+
+To account for high linearity among variables, including but not limited to WPS, we tried tried factor analysis to reduce the dimension. The results show that there are several vectors that represent the data without a strong skewness. The first representative vector explains only around 15% of the entire variance. Nevertheless, we fit the model with only the top five most representative components.
+
+```{r}
+pca_data<-data%>%select(-text, -Segment, -ccode_iso, -dd_democracy)
+pca_result<- prcomp(pca_data,
+             center = TRUE,
+            scale. = TRUE)
+
+library(factoextra)
+fviz_eig(pca_result)
+
+ggplot(data = NULL) +
+  geom_segment(data = as.data.frame(pca_result$rotation), 
+               aes(x = 0, y = 0, xend = PC1, yend = PC2),
+               arrow = arrow(length = unit(0.2, "cm")), color = 'blue') +
+  geom_text(data = as.data.frame(pca_result$rotation), 
+            aes(label = rownames(pca_result$rotation), x = PC1, y = PC2), 
+            size = 5, check_overlap = TRUE) +  # Adjust the size parameter here
+  theme_minimal()
+
+```
+
+# Cross validation after PCA
+
+We select the top 5 vectors that best represent the data. This will account for 30% of variances explained. After selecting 5 components, accuracy became 68%. We also used the top 3 components, which dropped the accuracy to 65%.
+
+```{r}
+
+pca.df<-pca_result$rotation
+pca.df<-pca.df%>%as.data.frame()%>%arrange(desc(abs(PC1)))
+
+combined_data <- cbind(pca_result$x[, 1:5], dd_democracy = data$dd_democracy)
+combined_data <- as.data.frame(combined_data)
+
+combined_data$dd_democracy <- as.factor(combined_data$dd_democracy)
+
+set.seed(6)
+split <- rsample::initial_split(combined_data, prop = 0.7, strat = "dd_democracy")
+trainN <- rsample::training(split)
+testN <- rsample::testing(split)
+
+
+trainN <- trainN[, !(names(trainN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
+testN <- testN[, !(names(testN) %in% c("ccode_iso", "year", "session", "dd_regime"))]
+
+trainN <- na.omit(trainN)
+bag.democracy.pca <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+
+
+predictions <- predict(bag.democracy.pca, newdata = testN)
+confusionMatrix(data = predictions, reference = testN$dd_democracy)
+
+```
+
+To understand the substantively important features, grouped by components, we checked importance metrics and the biplot.
+
+```{r}
+importance(bag.democracy.pca,  type=1, scale = TRUE) %>%
+  as.data.frame() %>%
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>% head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+
+ggplot(data = NULL) +
+  geom_segment(data = as.data.frame(pca_result$rotation), 
+               aes(x = 0, y = 0, xend = PC2, yend = PC3),
+               arrow = arrow(length = unit(0.2, "cm")), color = 'blue') +
+  geom_text(data = as.data.frame(pca_result$rotation), 
+            aes(label = rownames(pca_result$rotation), x = PC2, y = PC3), 
+            size = 5, check_overlap = TRUE) +  # Adjust the size parameter here
+  theme_minimal()+
+  labs(x = "PC2", y = "PC3")
+```
+
+## Trial 3: excluding WC, WPS, and Period
+
+To zero in on more meaningful features other than WPS, we left out some of the correlated features along with WPS. OOB estimate of error rate slightly increased around 0.5 percentage point(%p) after removing WC, WPS, and Period. Prediction accuracy against testN slightly dropped to 0.7409 accordingly.
+
+
+```{r Trial3}
+set.seed(7)
+split <- rsample::initial_split(data, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+trainN <- trainN[, !(names(trainN) %in% c("ccode_iso", "year", "session", "dd_regime", "WC", "WPS", "Period"))]
+testN <- testN[, !(names(testN) %in% c("ccode_iso", "year", "session", "dd_regime", "WC", "WPS", "Period"))]
+
+# Remove rows with missing values
+trainN <- na.omit(trainN)
+
+# Fit random forest model after removing missing values
+bag.democracy2 <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+
+varImpPlot(bag.democracy2, sort=T, n.var= 25, main= "Democracy vs. Non-democracy", pch=16)
+
+bag.RT.pred2 <- predict(bag.democracy2, newdata = testN) 
+
+RT.pred2 <- predict(bag.democracy2, newdata=testN, type="class")
+
+RT.evlau2 <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
+                                   RT.pred2, 
+                                   positive = "1",
+                                   dnn = c("Reference","Prediction"))
+RT.evlau2
+
+
+# Importance matrix
+importance(bag.democracy2, type=1, scale = TRUE) %>%
+  as.data.frame() %>%
+  arrange(desc(MeanDecreaseAccuracy)) %>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+
+
+```
+
+There wasn't a significant change in accuracy compared to Trial 1. We found one explanation from a chapter from [Limitations of Interpretable Machine Learning Methods](https://slds-lmu.github.io/iml_methods_limitations/ "Limitations of Interpretable Machine Learning Methods").
+
+::: {.callout-note appearance="simple"}
+
+"There is a drop in Leave-One-Covariate-Out(LOCO) Feature Importance of the two features the higher the correlation. However, in case of almost perfect multicollinearity, dropping the features that are correlated out of consideration to calculate the LOCO Feature Importance, the other feature can kind of"pick up" the effect on the target variable. As a consequence, there is no change in accuracy which means that there is only a small, up to no, increase in the error [@parr2018]."
+::: 
+
+#### Trial 3.1) Subsetting aggregate-level features only
+We suspected if the LIWC's aggregate indices were correlated with their composite variables. 
+
+Accuracy : 0.7132
+
+```{r Trial 3.1}
+subset<-data%>%
+  dplyr::select(Analytic, Clout, Authentic, Tone, BigWords, Linguistic, Dic, Drives,
+                Cognition, Affect, Culture, Lifestyle, Physical, Perception, Conversation,
+                AllPunc, dd_democracy)
+
+set.seed(4)
+
+split <- rsample::initial_split(subset, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+# Remove rows with missing values
+trainN <- na.omit(trainN)
+
+# Fit random forest model after removing missing values
+bag.democracy3 <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+
+varImpPlot(bag.democracy3, sort=T, n.var= 15, main= "Democracy vs. Non-democracy", pch=16)
+
+bag.RT.pred3 <- predict(bag.democracy3, newdata = testN) 
+
+RT.pred3 <- predict(bag.democracy3, newdata=testN, type="class")
+
+RT.evlau3 <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
+                                   RT.pred3, 
+                                   positive = "1",
+                                   dnn = c("Reference","Prediction"))
+RT.evlau3
+
+
+
+# Importance matrix
+importance(bag.democracy3) %>%
+  as.data.frame() %>%
+  arrange(desc(abs(MeanDecreaseAccuracy))) %>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+```
+
+#### Trial 3.2) Subsetting lower-level features only
+We also tried the opposite of Trial 3.1 by removing aggregate indices. There wasn't a significant change in the overall accuracy. 
+
+Accuracy : 0.7444
+
+```{r Trial 3.2}
+subset2<-data[, !names(data) %in%
+                c("WC", "WPS", "BigWords","Tone", "Analytic", "Clout", "Authentic", "Dic", "Linguistic", "Drives", "Cognition", "Affect", "Culture", "Lifestyle", "Physical", "Perception", "Conversation", "AllPunc", "function_features", "ppron", "emotion", "socbehav", "socrefs", "Culture", "Lifestyle", "Physical", "States", "Motives", "Perception", "Conversational", "Social", "Period")]
+
+subset2<-subset2[, c(6:99)]
+
+set.seed(4)
+
+split <- rsample::initial_split(subset2, prop=0.7, strata="dd_democracy")
+trainN <- rsample::training(split)
+trainN$dd_democracy<-factor(trainN$dd_democracy)
+testN <- rsample::testing(split)
+
+# Remove rows with missing values
+trainN <- na.omit(trainN)
+
+# Fit random forest model after removing missing values
+bag.democracy4 <- randomForest(dd_democracy ~ ., 
+                               data = trainN, 
+                               ntree = 500,
+                               mtry = ncol(trainN) - 1,
+                               importance = TRUE)
+
+varImpPlot(bag.democracy4, sort=T, n.var= 25, main= "Democracy vs. Non-democracy", pch=16)
+
+bag.RT.pred4 <- predict(bag.democracy4, newdata = testN) 
+
+RT.pred4 <- predict(bag.democracy4, newdata=testN, type="class")
+
+RT.evlau4 <- caret::confusionMatrix(as.factor(testN$dd_democracy), 
+                                   RT.pred4, 
+                                   positive = "1",
+                                   dnn = c("Reference","Prediction"))
+RT.evlau4
+
+# Importance matrix
+importance(bag.democracy4) %>%
+  as.data.frame() %>%
+  arrange(desc(abs(MeanDecreaseAccuracy)))%>%head(20) %>%
+  kbl() %>%  kable_paper("hover", full_width = FALSE) %>%
+  scroll_box(width = "100%", height = "400px") 
+```
+
+Random forest models did not show a better performance than logistic regression. We attribute this marginal performance to the fact that binary outcome is balanced. Previous studies have merited random forests to study rare events (@Muchlinski2016, @Wang2019).
+
+# Hierarchical clustering
+- scaling issue
+- within country see how that changes
+- continuous variable for the output
+
+
+
+# References
+
