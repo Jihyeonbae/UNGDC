@@ -2,7 +2,7 @@
 title: "Moving LDA Version - Inverse Weighted"
 format: html
 editor: visual
-bibliography: references.bib
+bibliography: ../references.bib
 ---
 
 ## Introduction
@@ -172,7 +172,7 @@ read_lda_models <- function(span_levels, output_dir) {
 
 ```{r}
 # read in the LDA models
-output_directory <- file.path("../output/lda/moving_0219")
+output_directory <- file.path("output/lda/moving_0219")
 lda_models <- read_lda_models(span_levels, output_directory)
 ```
 

@@ -3,7 +3,7 @@ title: "liwc_modeling"
 author: "Jihyeon bae"
 date: "`r Sys.Date()`"
 output: html_document
-bibliography: references.bib
+bibliography: ../references.bib
 ---
 
 # Introduction
@@ -37,7 +37,7 @@ library(kableExtra)
 library(modelsummary)
 
 
-liwc_df<-read_csv("../data/interim/liwc_meta.csv")
+liwc_df<-read_csv("data/interim/liwc_meta.csv")
 
 liwc_df<-liwc_df%>%
   dplyr::select(-"...1")
