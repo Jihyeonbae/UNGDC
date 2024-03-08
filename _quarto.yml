@@ -6,6 +6,7 @@ project:
     - "rmarkdown/UNGDC_topic_modeling_updated.qmd"
     - "rmarkdown/moving_lda_0219.qmd"
     - "rmarkdown/liwc_analysis.qmd" 
+    - "rmarkdown/liwc_randomforest.qmd"
     - "jupyter_notebook/functions_for_bert.ipynb"
   
 
@@ -32,6 +33,8 @@ website:
         contents:
           - text: LIWC
             href: rmarkdown/liwc_analysis.qmd 
+ 	  - text: LIWC Random Forest
+	    href: rmarkdown/liwc_randomforest.qmd
       - section: BERT
         contents:
           - text: BERT Functions
