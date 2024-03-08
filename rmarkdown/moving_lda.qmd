@@ -27,7 +27,7 @@ Size of the window, and overlapping interval can influence the level of correlat
 There are different options for weight type, which determines the way each term is counted. Functionally, I used `quanteda` package to specify this scheme option. I tried count type, which provides an integer feature of count, and proportion type that is based on the relative frequency of a term compared to total counts. Proportion type is calculated by $\frac{tf_{ij}}{\Sigma_{j} {tf_{ij}}}$ where in $i, j$ each represents indices for a term and a document. Given the normalization process of the proportion weight type, variation between terms is smaller than simple count type. This is expected to lessen the gap between rare and frequent terms, and hence allow model to capture even general terms.
 
 -   [x] Experiment1: 10-year, 5 overlap, saved in `moving_0209`. tfidf option: count and inverse. 10 topics
--   [ ] Experiment2: 10-year, 5 overlap, saved in `moving_0214`. tfidf option: count and inverse. 20 topics
+-   [ ] Experiment2: 10-year, 5 overlap, saved in `moving_0217`. tfidf option: count and proportion 20 topics
 -   [ ] Experiment3: 10-year, 5 overlap, saved in `moving_0214`. tfidf option: prop and inverse. 20 topics
 
 ## Setting up libraries and load raw data
@@ -46,7 +46,7 @@ library(gplots) #this is for heatmap
 library(zoo)
 library(tibble)
 library(knitr)
-
+library(topicmodels)
 
 light<-read.csv("../data/processed/cleaned.csv")
 light<-light%>%select(-X)
@@ -59,80 +59,101 @@ duration <- 1945:2022
 interval <- 10
 
 # Define breaks
-breaks <- c(seq(from = 1945, to = 2020, by = 5), 2022) 
+breaks <- c(seq(from = 1945, to = 2022, by = 5), 2022) 
 
-last_break <- breaks[length(breaks)-1]
+last_break <- breaks[length(breaks)]
 
-if (last_break + interval > 2020) {
+if (last_break + interval > 2022) {
   moving_breaks <- breaks
 } else {
   moving_breaks <- c(breaks, last_break + interval)
 }
 
-# Calculate start and end years
-start_years <- moving_breaks[1:14]
+
+start_years <- moving_breaks[1:length(moving_breaks)-1]
 end_years <- start_years + interval
-end_years<-end_years[1:14]
+end_years[end_years > 2022] <- 2022 
+
 
 span_levels <- paste0(start_years, "_", end_years)
 ```
 
 # LDA Generation
 
+# token option 2
+  tokens(subset$text)%>%
+                      tokens_tolower() %>%
+                      tokens_remove(pattern=custom_stopwords) %>%
+                      tokens_wordstem() %>%
+                      tokens(remove_numbers = TRUE,
+                            remove_punct = TRUE,
+                            split_hyphens = TRUE) 
+## running lda
 ```{r}
-library(quanteda)
+|#eval = FALSE
 library(topicmodels)
 
 lda_generator <- function(corpus, start_year, end_year, window_size = 10, overlap = 5, num_topics = 20) {
-  output_dir <- "output/lda/moving_0214"
+  output_dir <- "../output/lda/moving_0217"
   if (!dir.exists(output_dir)) {
     dir.create(output_dir, recursive = TRUE)
   }
 
   while (end_year <= 2022) {
+ # Record start time
+  start_time <- Sys.time()
     # Subset the corpus for the current time window
     subset <- corpus[corpus$year >= start_year & corpus$year <= end_year, ]
 
     # Preprocess the subset
-    subset_dfm <- dfm(subset$text,
-                      remove_numbers = TRUE,
-                      split_hyphens = TRUE,
-                      stem = TRUE,
-                      remove_punct = TRUE,
-                      tolower = TRUE,
-                      remove = stopwords("english"))
+    subset_tokens <- tokens(subset$text,
+                            remove_numbers = TRUE,
+                            remove_punct = TRUE,
+                            split_hyphens = TRUE) %>%
+                    tokens_wordstem() %>%
+                    tokens_tolower() %>%
+                    tokens_remove(pattern = custom_stopwords)
+    
 
     # Convert to TF-IDF matrix
-    dfm_idf <- dfm_tfidf(subset_dfm,
-                         scheme_tf = "count",
+    dfm_idf <- dfm(subset_tokens) %>%
+                dfm_tfidf(scheme_tf = "prop",
                          scheme_df = "inverse")
 
     # Save TF-IDF matrix
-    dfm_output_file <- file.path(output_dir, paste0("dfm_", start_year, "-", end_year, ".RDS"))
+    dfm_output_file <- file.path(output_dir, paste0("dfm_", start_year, "_", end_year, ".RDS"))
     saveRDS(convert(dfm_idf, to = "data.frame"), dfm_output_file)
 
     # Train LDA model
-    tmod_lda <- textmodel_lda(subset_dfm, k = num_topics)
+    tmod_lda <- textmodel_lda(dfm_idf, k = num_topics)
 
     # Save LDA model
-    lda_output_file <- file.path(output_dir, paste0("lda_model_", start_year, "-", end_year, ".RDS"))
+    lda_output_file <- file.path(output_dir, paste0("lda_model_", start_year, "_", end_year, ".RDS"))
     saveRDS(tmod_lda, lda_output_file)
+    
+  # Record end time
+  end_time <- Sys.time()
+  elapsed_minutes <- as.numeric(difftime(end_time, start_time, units = "mins"))
+  
+  cat(sprintf("LDA generation completed in %.2f minutes.\n", elapsed_minutes))
 
     # Move the window with overlap
     start_year <- start_year + overlap
     end_year <- end_year + overlap
-  }
-}
+    
+    if (end_year > 2022) break
+  }}
 
 
 # Example usage
-lda_generator(light, 1945, 1955)  # Adjust the start and end year according to your needs
+#lda_generator(light, 1945, 1955)  
 
 ```
 
 # Read in lda outputs
 
 Given the time it takes to run the LDA models, I directly read in the outputs from a local directory.
+
 
 ```{r}
 # Define a list to store the LDA model outputs
@@ -155,9 +176,10 @@ read_lda_models <- function(span_levels, output_dir) {
 
 ```{r}
 # read in the LDA models
-output_directory <- file.path("../output/lda/moving_0209")
+output_directory <- file.path("../output/lda/moving_0217")
 lda_models <- read_lda_models(span_levels, output_directory)
 ```
+
 
 # Functions for LDA Analysis
 
@@ -289,6 +311,8 @@ for (i in 1:length(lda_models)) {
       print(final_result)
     }
   }
+}
+
 }
 
 ```
