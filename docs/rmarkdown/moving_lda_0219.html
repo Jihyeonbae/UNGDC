@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.549">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>UN General Debates Speech Analysis - Moving LDA Version - Inverse Weighted</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../rmarkdown/UNGDC_topic_modeling_updated.html">Topic Modeling</a></li><li class="breadcrumb-item"><a href="../rmarkdown/moving_lda_0219.html">Moving LDA</a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">UN General Debates Speech Analysis</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+ <span class="menu-text">Topic Modeling</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../rmarkdown/UNGDC_topic_modeling_updated.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Decadal LDA</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../rmarkdown/moving_lda_0219.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Moving LDA</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true">
+ <span class="menu-text">Linguistic Analysis</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../rmarkdown/liwc_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">LIWC</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true">
+ <span class="menu-text">BERT</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../jupyter_notebook/functions_for_bert.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">BERT Functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#goal" id="toc-goal" class="nav-link" data-scroll-target="#goal">Goal</a></li>
+  <li><a href="#experiment-logs" id="toc-experiment-logs" class="nav-link" data-scroll-target="#experiment-logs">Experiment logs</a></li>
+  <li><a href="#setting-up-libraries-and-load-raw-data" id="toc-setting-up-libraries-and-load-raw-data" class="nav-link" data-scroll-target="#setting-up-libraries-and-load-raw-data">Setting up libraries and load raw data</a></li>
+  <li><a href="#lda-generation" id="toc-lda-generation" class="nav-link" data-scroll-target="#lda-generation">LDA Generation</a>
+  <ul class="collapse">
+  <li><a href="#uncomment-the-below-section-to-run-the-lda-analysis" id="toc-uncomment-the-below-section-to-run-the-lda-analysis" class="nav-link" data-scroll-target="#uncomment-the-below-section-to-run-the-lda-analysis">Uncomment the below section to run the LDA analysis</a></li>
+  </ul></li>
+  <li><a href="#read-in-lda-outputs" id="toc-read-in-lda-outputs" class="nav-link" data-scroll-target="#read-in-lda-outputs">Read in lda outputs</a></li>
+  <li><a href="#functions-for-lda-analysis" id="toc-functions-for-lda-analysis" class="nav-link" data-scroll-target="#functions-for-lda-analysis">Functions for LDA Analysis</a>
+  <ul class="collapse">
+  <li><a href="#function-1-generating-heatmaps" id="toc-function-1-generating-heatmaps" class="nav-link" data-scroll-target="#function-1-generating-heatmaps">Function 1) Generating heatmaps</a></li>
+  <li><a href="#function-2-printing-out-correlated-term-vectors" id="toc-function-2-printing-out-correlated-term-vectors" class="nav-link" data-scroll-target="#function-2-printing-out-correlated-term-vectors">Function 2) Printing out correlated term vectors</a></li>
+  <li><a href="#function-3-sorting-top-10-terms-from-each-term-vector." id="toc-function-3-sorting-top-10-terms-from-each-term-vector." class="nav-link" data-scroll-target="#function-3-sorting-top-10-terms-from-each-term-vector.">Function 3) Sorting top 10 terms from each term vector.</a></li>
+  </ul></li>
+  <li><a href="#loop-over-moving-windows-and-print-results" id="toc-loop-over-moving-windows-and-print-results" class="nav-link" data-scroll-target="#loop-over-moving-windows-and-print-results">Loop over moving windows and print results</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../rmarkdown/UNGDC_topic_modeling_updated.html">Topic Modeling</a></li><li class="breadcrumb-item"><a href="../rmarkdown/moving_lda_0219.html">Moving LDA</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Moving LDA Version - Inverse Weighted</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>This study analyzes the global agenda of the United Nations General Debate (UNGD) and shows temporal development of the topics. Substantively, UNGDC reflects in change of agendas when exogenous shocks take place. The issue of connecting time-series evolution of topic has been addressed by others. Rieger et al. <span class="citation" data-cites="rieger2021">(<a href="#ref-rieger2021" role="doc-biblioref"><strong>rieger2021?</strong></a>)</span> introduces a sequential approach to LDA with the accompanying package, and Greene at al. <span class="citation" data-cites="greene2017">(<a href="#ref-greene2017" role="doc-biblioref"><strong>greene2017?</strong></a>)</span> uses non-negative matrix factorization to analyze the European Parliament Debate Corpus.</p>
+<p>There are two main challenges to address cross-section time-series text dataset. First, same topic is represented with different sets of terms over time, given the social context and norms around a specific construct. Second, given changes around the topic representation, it requires theory-based post-labeling to</p>
+</section>
+<section id="goal" class="level2">
+<h2 class="anchored" data-anchor-id="goal">Goal</h2>
+<p>In order to generate LDA estimations across time more smoothly, this script changes the <code>UNGDC_topic_modeling_updated.qmd</code>and experiments with different moving window. Just like the other scripts, I use <code>cleaned.csv</code> file. It has four columns: “ccode_iso”, “session”, “year”, and finally “text”.</p>
+</section>
+<section id="experiment-logs" class="level2">
+<h2 class="anchored" data-anchor-id="experiment-logs">Experiment logs</h2>
+<p>Size of the window, and overlapping interval can influence the level of correlation between vectors. The goal of experiments with changing parameters is to capture general themes that discuss beyond a region-specific topic. Furthermore, I overcome the problem of raw term frequency that treats all terms as equally important. Inverse document frequency (idf) of a term is a weight, defined as logged value of the total number of documents in a collection denominated by the number of documents that contain the term. Intuitively, this gives less weight to terms that show up commonly across all the documents. The term frequency-inverse document frequency(tf-idf) weighting scheme returns a weight to a term that increases with the number of occurrence within a small <span class="citation" data-cites="rieger2021">(<a href="#ref-rieger2021" role="doc-biblioref"><strong>rieger2021?</strong></a>)</span>set of documents (<span class="citation" data-cites="manning2008">(<a href="#ref-manning2008" role="doc-biblioref"><strong>manning2008?</strong></a>)</span>). This supplements the explicit omission of stop words by winnowing out context-specific frequent words.</p>
+<p>There are different options for weight type, which determines the way each term is counted. Functionally, I used <code>quanteda</code> package to specify this scheme option. I tried count type, which provides an integer feature of count, and proportion type that is based on the relative frequency of a term compared to total counts. Proportion type is calculated by <span class="math inline">\(\frac{tf_{ij}}{\Sigma_{j} {tf_{ij}}}\)</span> where in <span class="math inline">\(i, j\)</span> each represents indices for a term and a document. Given the normalization process of the proportion weight type, variation between terms is smaller than simple count type. This is expected to lessen the gap between rare and frequent terms, and hence allow model to capture even general terms. However, R package <code>seededlda</code> and its function <code>topic_models</code> does not allow tf_idf based on “proportion” as an input because LDA assumes integer counts as observations, not floats.</p>
+<p>This version presents the outcome generated by Experiment 3. Experiment 2 log can be found in <a href="../script/exploratory/lda/moving_lda_0218.qmd">moving_lda_0218.qmd</a>.</p>
+<ul class="task-list">
+<li><label><input type="checkbox" checked="">Trial 1: 10-year, 5 overlap, saved in <code>moving_0209</code>. tfidf option: count and inverse. 10 topics</label></li>
+<li><label><input type="checkbox" checked="">Trial 2: 10-year, 5 overlap, saved in <code>moving_0218_2</code>. tfidf option: none. 20 topics</label></li>
+<li><label><input type="checkbox" checked="">Trial 3: 10-year, 5 overlap, saved in <code>moving_0219</code>. tfidf option: count and inverse. 20 topics</label></li>
+<li><label><input type="checkbox">Trial 4: try a different R package for the proportion-inverse-weighted LDA other than ‘quanteda’</label></li>
+</ul>
+</section>
+<section id="setting-up-libraries-and-load-raw-data" class="level2">
+<h2 class="anchored" data-anchor-id="setting-up-libraries-and-load-raw-data">Setting up libraries and load raw data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tm)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quanteda)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(seededlda)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(slam)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gplots) <span class="co">#this is for heatmap</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(zoo)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(topicmodels)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">#light&lt;-read.csv("../data/processed/cleaned.csv")</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">#light&lt;-light%&gt;%select(-X)</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>mystopwords <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"will"</span>, <span class="st">"must"</span>, <span class="st">"mr"</span>) <span class="co">#removing context-specific stopwords</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>custom_stopwords <span class="ot">&lt;-</span><span class="fu">c</span>(<span class="fu">stopwords</span>(<span class="st">"english"</span>), mystopwords)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Set up the parameters</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>interval <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>breaks <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">seq</span>(<span class="at">from =</span> <span class="dv">1945</span>, <span class="at">to =</span> <span class="dv">2020</span>, <span class="at">by =</span> <span class="dv">5</span>), <span class="dv">2022</span>) </span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>last_break <span class="ot">&lt;-</span> breaks[<span class="fu">length</span>(breaks)<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (last_break <span class="sc">+</span> interval <span class="sc">&gt;</span> <span class="dv">2020</span>) {</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>  moving_breaks <span class="ot">&lt;-</span> breaks</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  moving_breaks <span class="ot">&lt;-</span> <span class="fu">c</span>(breaks, last_break <span class="sc">+</span> interval)</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>start_years <span class="ot">&lt;-</span> moving_breaks[<span class="dv">1</span><span class="sc">:</span><span class="dv">14</span>]</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>end_years <span class="ot">&lt;-</span> start_years <span class="sc">+</span> interval</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>end_years <span class="ot">&lt;-</span> end_years[<span class="dv">1</span><span class="sc">:</span><span class="dv">14</span>]</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="co"># add the final two windows</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>span_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">paste0</span>(start_years, <span class="st">"-"</span>, end_years), <span class="st">"2015-2022"</span>, <span class="st">"2020-2022"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="lda-generation" class="level1">
+<h1>LDA Generation</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>lda_generator <span class="ot">&lt;-</span> <span class="cf">function</span>(corpus, span_levels, window_size, overlap, num_topics) {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># setting up parameters  </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>      window_size <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>      overlap <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>      num_topics <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>      output_dir <span class="ot">&lt;-</span> <span class="st">"../output/lda/moving_0219"</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(output_dir)) {</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">dir.create</span>(output_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  start_years <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(span_levels))</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  end_years <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(span_levels))</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(span_levels)) {</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    years <span class="ot">&lt;-</span> <span class="fu">strsplit</span>(<span class="fu">as.character</span>(span_levels[i]), <span class="st">"-"</span>)[[<span class="dv">1</span>]]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    start_years[i] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(years[<span class="dv">1</span>])</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    end_years[i] <span class="ot">&lt;-</span> <span class="fu">as.numeric</span>(years[<span class="dv">2</span>])</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(span_levels)) {</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    start_year_span <span class="ot">&lt;-</span> start_years[i]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    end_year_span <span class="ot">&lt;-</span> end_years[i]</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    start_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Subset the corpus for the time window</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    subset <span class="ot">&lt;-</span> corpus[corpus<span class="sc">$</span>year <span class="sc">&gt;=</span> start_year_span <span class="sc">&amp;</span> corpus<span class="sc">$</span>year <span class="sc">&lt;=</span> end_year_span, ]</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Preprocess the subset</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>    tokens <span class="ot">&lt;-</span> <span class="fu">tokens</span>(subset<span class="sc">$</span>text, </span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>                     <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>                     <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,  <span class="co"># Remove punctuation</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>                     <span class="at">remove_symbols =</span> <span class="cn">TRUE</span>,  <span class="co"># Remove special characters</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>                     <span class="at">split_hyphens =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">tokens_tolower</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">tokens_remove</span>(<span class="at">pattern =</span> custom_stopwords) <span class="sc">%&gt;%</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">tokens_wordstem</span>() </span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    subset_dfm <span class="ot">&lt;-</span> <span class="fu">dfm</span>(tokens)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Convert to TF-IDF matrix </span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    dfm_idf <span class="ot">&lt;-</span> <span class="fu">dfm_tfidf</span>(subset_dfm,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_tf =</span> <span class="st">"count"</span>,</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>                         <span class="at">scheme_df =</span> <span class="st">"inverse"</span>)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    tmod_lda <span class="ot">&lt;-</span> <span class="fu">textmodel_lda</span>(dfm_idf, <span class="at">k =</span> num_topics)</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Save LDA model</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>    lda_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"lda_model_"</span>, start_year_span, <span class="st">"-"</span>, end_year_span, <span class="st">".RDS"</span>))</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">saveRDS</span>(tmod_lda, lda_output_file)</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Move the window with overlap</span></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    start_year_span <span class="ot">&lt;-</span> start_year_span <span class="sc">+</span> overlap</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>    end_year_span <span class="ot">&lt;-</span> end_year_span <span class="sc">+</span> overlap</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    end_time <span class="ot">&lt;-</span> <span class="fu">Sys.time</span>()</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    elapsed_time <span class="ot">&lt;-</span> end_time <span class="sc">-</span> start_time</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">"Elapsed time for iteration:"</span>, elapsed_time, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="uncomment-the-below-section-to-run-the-lda-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="uncomment-the-below-section-to-run-the-lda-analysis">Uncomment the below section to run the LDA analysis</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#lda_generator(light, span_levels) </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="read-in-lda-outputs" class="level1">
+<h1>Read in lda outputs</h1>
+<p>Given the time it takes to run the LDA models, I directly read in the outputs from a local directory.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a list to store the LDA model outputs</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>read_lda_models <span class="ot">&lt;-</span> <span class="cf">function</span>(span_levels, output_dir) {</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  lda_models <span class="ot">&lt;-</span> <span class="fu">list</span>()  </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (span <span class="cf">in</span> span_levels) {</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    lda_output_file <span class="ot">&lt;-</span> <span class="fu">file.path</span>(output_dir, <span class="fu">paste0</span>(<span class="st">"lda_model_"</span>, span, <span class="st">".RDS"</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">file.exists</span>(lda_output_file)) {</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>      lda_model <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(lda_output_file)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>      lda_models <span class="ot">&lt;-</span> <span class="fu">c</span>(lda_models, <span class="fu">list</span>(lda_model))  </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"LDA model for %s successfully loaded.</span><span class="sc">\n</span><span class="st">"</span>, span))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>      <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"LDA model file for %s not found.</span><span class="sc">\n</span><span class="st">"</span>, span))</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(lda_models)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read in the LDA models</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>output_directory <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"output/lda/moving_0219"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>lda_models <span class="ot">&lt;-</span> <span class="fu">read_lda_models</span>(span_levels, output_directory)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>LDA model for 1945-1955 successfully loaded.
+LDA model for 1950-1960 successfully loaded.
+LDA model for 1955-1965 successfully loaded.
+LDA model for 1960-1970 successfully loaded.
+LDA model for 1965-1975 successfully loaded.
+LDA model for 1970-1980 successfully loaded.
+LDA model for 1975-1985 successfully loaded.
+LDA model for 1980-1990 successfully loaded.
+LDA model for 1985-1995 successfully loaded.
+LDA model for 1990-2000 successfully loaded.
+LDA model for 1995-2005 successfully loaded.
+LDA model for 2000-2010 successfully loaded.
+LDA model for 2005-2015 successfully loaded.
+LDA model for 2010-2020 successfully loaded.
+LDA model for 2015-2022 successfully loaded.
+LDA model for 2020-2022 successfully loaded.</code></pre>
+</div>
+</div>
+</section>
+<section id="functions-for-lda-analysis" class="level1">
+<h1>Functions for LDA Analysis</h1>
+<section id="function-1-generating-heatmaps" class="level2">
+<h2 class="anchored" data-anchor-id="function-1-generating-heatmaps">Function 1) Generating heatmaps</h2>
+<p>To visualize the correlation between term-weight vectors from two time periods, below function generates heatmaps across pairs. This process also includes intermediate steps that generate a union of term vectors, which is needed to match the dimension between two matrices. A pair of lda_models should be neighbors from two consecutive time intervals, which may vary.</p>
+<ul>
+<li>Inputs: span levels in character form, two lda_models in a list form</li>
+<li>Output: Heatmap plots</li>
+</ul>
+</section>
+<section id="function-2-printing-out-correlated-term-vectors" class="level2">
+<h2 class="anchored" data-anchor-id="function-2-printing-out-correlated-term-vectors">Function 2) Printing out correlated term vectors</h2>
+<p>Based on the correlation matrix, below code prints out term vectors that show high correlation. It also lists the topic index from two different time intervals. Note that even the highly-correlated topics can have different topic indices.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>print_ordered_rows <span class="ot">&lt;-</span> <span class="cf">function</span>(phi1_union, phi2_union, cor_matrix, high_corr_indices, <span class="at">correlation_threshold =</span> <span class="fl">0.9</span>) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Find indices where correlation is higher than the threshold</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  high_corr_indices <span class="ot">&lt;-</span> <span class="fu">which</span>(cor_matrix <span class="sc">&gt;</span> correlation_threshold <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(cor_matrix), <span class="at">arr.ind =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create an empty list to store results</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  result_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Print the ordered rows for each topic with high correlation</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_len</span>(<span class="fu">nrow</span>(high_corr_indices))) {</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    model1_topic <span class="ot">&lt;-</span> high_corr_indices[i, <span class="dv">1</span>]</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    model2_topic <span class="ot">&lt;-</span> high_corr_indices[i, <span class="dv">2</span>]</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Print the ordered rows for each model's topic</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">"Model 1 - Topic"</span>, model1_topic), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    phi1_result_row <span class="ot">&lt;-</span> <span class="fu">orderBasedOnRow</span>(phi1_union, model1_topic)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="fu">paste</span>(<span class="st">"Model 2 - Topic"</span>, model2_topic), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    phi2_result_row <span class="ot">&lt;-</span> <span class="fu">orderBasedOnRow</span>(phi2_union, model2_topic)</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Convert result rows to long format</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    phi1_result_long <span class="ot">&lt;-</span> phi1_result_row <span class="sc">%&gt;%</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>      tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"term_1"</span>, <span class="at">values_to =</span> <span class="st">"probability_1"</span>)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    phi2_result_long <span class="ot">&lt;-</span> phi2_result_row <span class="sc">%&gt;%</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>      tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"term_2"</span>, <span class="at">values_to =</span> <span class="st">"probability_2"</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Combine phi1 and phi2 results</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    pair <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(phi1_result_long, phi2_result_long)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Append the result to the list</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    result_list[[i]] <span class="ot">&lt;-</span> pair</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine all results into a single dataframe</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  final_result <span class="ot">&lt;-</span> <span class="fu">do.call</span>(bind_rows, result_list)</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">kable</span>(final_result))</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="function-3-sorting-top-10-terms-from-each-term-vector." class="level2">
+<h2 class="anchored" data-anchor-id="function-3-sorting-top-10-terms-from-each-term-vector.">Function 3) Sorting top 10 terms from each term vector.</h2>
+<p>Previous steps have sorted term columns alphabetically to create correlation matrix. I re-organize each time period’s term vector in the order of weights to list the most semantically significant term within each topic.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>orderBasedOnRow <span class="ot">&lt;-</span> <span class="cf">function</span>(df, I) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Order columns based on the Ith row values</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  ordered_cols <span class="ot">&lt;-</span> <span class="fu">order</span>(<span class="fu">apply</span>(df, <span class="dv">2</span>, <span class="cf">function</span>(x) x[I]), <span class="at">decreasing =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Reorder the data frame columns</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  ordered_df <span class="ot">&lt;-</span> df[, ordered_cols]</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  ordered_row <span class="ot">&lt;-</span> ordered_df[I, <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(ordered_row)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="loop-over-moving-windows-and-print-results" class="level1">
+<h1>Loop over moving windows and print results</h1>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 10 
+Model 2 - Topic 5 
+Model 1 - Topic 9 
+Model 2 - Topic 12 
+Model 1 - Topic 14 
+Model 2 - Topic 14 
+
+
+|term_1    | probability_1|term_2    | probability_2|
+|:---------|-------------:|:---------|-------------:|
+|communist |     0.0289820|communist |     0.0215547|
+|chines    |     0.0181595|chines    |     0.0110215|
+|china     |     0.0092469|communism |     0.0083404|
+|communism |     0.0087694|mainland  |     0.0070955|
+|soviet    |     0.0065413|philippin |     0.0056592|
+|mainland  |     0.0065413|student   |     0.0051804|
+|korea     |     0.0054272|china     |     0.0047974|
+|peip      |     0.0038356|regim     |     0.0043186|
+|russian   |     0.0036765|soviet    |     0.0042228|
+|imperi    |     0.0033582|korea     |     0.0040313|
+|arab      |     0.0333389|arab      |     0.0299379|
+|israel    |     0.0293468|israel    |     0.0289590|
+|palestin  |     0.0145852|palestin  |     0.0174187|
+|jerusalem |     0.0135639|refuge    |     0.0098969|
+|jew       |     0.0107787|algeria   |     0.0086089|
+|refuge    |     0.0086434|jewish    |     0.0068057|
+|jewish    |     0.0082721|jew       |     0.0062390|
+|holi      |     0.0054869|homeland  |     0.0052601|
+|israel’   |     0.0046513|zionist   |     0.0052086|
+|zionist   |     0.0045585|jerusalem |     0.0051056|
+|consid    |     0.7466052|consid    |     0.7245099|
+|leader    |     0.0004065|confer    |     0.0003418|
+|uniti     |     0.0003956|disarma   |     0.0003177|
+|negoti    |     0.0003571|communist |     0.0003116|
+|aggress   |     0.0003517|administr |     0.0003116|
+|european  |     0.0003517|atom      |     0.0002935|
+|armistic  |     0.0003517|coexist   |     0.0002935|
+|europ     |     0.0003462|exchang   |     0.0002905|
+|independ  |     0.0003462|capit     |     0.0002844|
+|collect   |     0.0003352|soviet    |     0.0002814|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 12 
+Model 2 - Topic 5 
+Model 1 - Topic 5 
+Model 2 - Topic 18 
+
+
+|term_1    | probability_1|term_2    | probability_2|
+|:---------|-------------:|:---------|-------------:|
+|arab      |     0.0299379|arab      |     0.0307411|
+|israel    |     0.0289590|israel    |     0.0277034|
+|palestin  |     0.0174187|palestin  |     0.0213481|
+|refuge    |     0.0098969|refuge    |     0.0098767|
+|algeria   |     0.0086089|homeland  |     0.0070388|
+|jewish    |     0.0068057|algeria   |     0.0065191|
+|jew       |     0.0062390|jewish    |     0.0061994|
+|homeland  |     0.0052601|yemen     |     0.0055599|
+|zionist   |     0.0052086|jew       |     0.0054000|
+|jerusalem |     0.0051056|zionist   |     0.0053600|
+|communist |     0.0215547|communist |     0.0270704|
+|chines    |     0.0110215|chines    |     0.0126990|
+|communism |     0.0083404|communism |     0.0087489|
+|mainland  |     0.0070955|mainland  |     0.0087489|
+|philippin |     0.0056592|costa     |     0.0078244|
+|student   |     0.0051804|liberian  |     0.0072361|
+|china     |     0.0047974|rica      |     0.0068159|
+|regim     |     0.0043186|mao       |     0.0045468|
+|soviet    |     0.0042228|revolut   |     0.0043787|
+|korea     |     0.0040313|soviet    |     0.0041265|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 5 
+Model 2 - Topic 2 
+Model 1 - Topic 14 
+Model 2 - Topic 4 
+Model 1 - Topic 9 
+Model 2 - Topic 15 
+Model 1 - Topic 4 
+Model 2 - Topic 17 
+
+
+|term_1        | probability_1|term_2        | probability_2|
+|:-------------|-------------:|:-------------|-------------:|
+|arab          |     0.0307411|israel        |     0.0381597|
+|israel        |     0.0277034|arab          |     0.0332029|
+|palestin      |     0.0213481|palestin      |     0.0211142|
+|refuge        |     0.0098767|isra          |     0.0131264|
+|homeland      |     0.0070388|zionist       |     0.0113791|
+|algeria       |     0.0065191|palestinian   |     0.0095604|
+|jewish        |     0.0061994|israel’       |     0.0093108|
+|yemen         |     0.0055599|jordan        |     0.0077061|
+|jew           |     0.0054000|jewish        |     0.0070999|
+|zionist       |     0.0053600|jerusalem     |     0.0060301|
+|algerian      |     0.0162806|algerian      |     0.0192061|
+|libya         |     0.0119346|algeria       |     0.0121188|
+|libyan        |     0.0114659|libya         |     0.0116664|
+|african       |     0.0103581|malagasi      |     0.0092035|
+|french        |     0.0084407|french        |     0.0077960|
+|algeria       |     0.0079294|libyan        |     0.0074945|
+|malagasi      |     0.0078442|franc         |     0.0069415|
+|franc         |     0.0075033|morocco       |     0.0063886|
+|congo         |     0.0069494|madagascar    |     0.0063384|
+|tunisian      |     0.0054155|tunisia       |     0.0062881|
+|german        |     0.0189856|german        |     0.0195757|
+|socialist     |     0.0134455|socialist     |     0.0137569|
+|czechoslovak  |     0.0112187|byelorussian  |     0.0125336|
+|soviet        |     0.0104583|soviet        |     0.0123352|
+|germani       |     0.0097250|ukrainian     |     0.0112442|
+|byelorussian  |     0.0096978|czechoslovak  |     0.0109466|
+|nato          |     0.0081770|germani       |     0.0107813|
+|western       |     0.0071451|western       |     0.0092275|
+|republ        |     0.0067377|nato          |     0.0081695|
+|ukrainian     |     0.0065476|ssr           |     0.0081364|
+|cuba          |     0.0223649|cuba          |     0.0255165|
+|cuban         |     0.0191781|cuban         |     0.0204357|
+|imperialist   |     0.0065877|bantu         |     0.0148735|
+|belgian       |     0.0062221|yanke         |     0.0085091|
+|revolutionari |     0.0056474|puerto        |     0.0059419|
+|imperi        |     0.0050727|revolutionari |     0.0055675|
+|volta         |     0.0043936|rico          |     0.0046583|
+|congoles      |     0.0042891|sugar         |     0.0045514|
+|revolut       |     0.0042368|oa            |     0.0043374|
+|aircraft      |     0.0042368|aircraft      |     0.0042305|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 2 
+Model 2 - Topic 12 
+
+
+|term_1      | probability_1|term_2      | probability_2|
+|:-----------|-------------:|:-----------|-------------:|
+|israel      |     0.0381597|israel      |     0.0230815|
+|arab        |     0.0332029|arab        |     0.0206201|
+|palestin    |     0.0211142|palestin    |     0.0142681|
+|isra        |     0.0131264|isra        |     0.0130771|
+|zionist     |     0.0113791|zionist     |     0.0100070|
+|palestinian |     0.0095604|palestinian |     0.0082338|
+|israel’     |     0.0093108|yemen       |     0.0075986|
+|jordan      |     0.0077061|israel’     |     0.0072810|
+|jewish      |     0.0070999|aggress     |     0.0072280|
+|jerusalem   |     0.0060301|jewish      |     0.0065664|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-6.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 9 
+Model 2 - Topic 2 
+Model 1 - Topic 13 
+Model 2 - Topic 18 
+Model 1 - Topic 6 
+Model 2 - Topic 19 
+
+
+|term_1       | probability_1|term_2      | probability_2|
+|:------------|-------------:|:-----------|-------------:|
+|presid       |     0.6960234|presid      |     0.6953641|
+|align        |     0.0004581|cooper      |     0.0005507|
+|dialog       |     0.0003453|dialog      |     0.0004569|
+|women        |     0.0003279|program     |     0.0004545|
+|twenti       |     0.0003238|fortieth    |     0.0003800|
+|ocean        |     0.0002943|ocean       |     0.0003367|
+|cooper       |     0.0002929|indian      |     0.0003355|
+|dialogu      |     0.0002849|sea         |     0.0003199|
+|vis          |     0.0002647|programm    |     0.0003115|
+|favor        |     0.0002594|per         |     0.0003030|
+|panama       |     0.0246931|panama      |     0.0176549|
+|rica         |     0.0113690|rica        |     0.0122595|
+|costa        |     0.0102805|costa       |     0.0121929|
+|hondura      |     0.0091483|hondura     |     0.0118931|
+|venezuela    |     0.0082775|canal       |     0.0113270|
+|canal        |     0.0081904|american    |     0.0089290|
+|nicaragua    |     0.0080598|salvador    |     0.0085627|
+|salvador     |     0.0068406|nicaragua   |     0.0085294|
+|panamanian   |     0.0065793|panamanian  |     0.0078633|
+|surinam      |     0.0064487|el          |     0.0072305|
+|soviet       |     0.0141930|soviet      |     0.0175825|
+|socialist    |     0.0122397|socialist   |     0.0113552|
+|mongolian    |     0.0113492|union       |     0.0107932|
+|austria      |     0.0089363|mongolian   |     0.0094668|
+|union        |     0.0084193|german      |     0.0088373|
+|ssr          |     0.0081033|europ       |     0.0087025|
+|byelorussian |     0.0075575|poland      |     0.0080505|
+|german       |     0.0075288|albania     |     0.0074435|
+|hungarian    |     0.0069543|imperialist |     0.0074210|
+|bulgaria     |     0.0064373|albanian    |     0.0059598|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-7.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 4 
+Model 2 - Topic 2 
+Model 1 - Topic 11 
+Model 2 - Topic 4 
+Model 1 - Topic 19 
+Model 2 - Topic 10 
+Model 1 - Topic 2 
+Model 2 - Topic 20 
+
+
+|term_1      | probability_1|term_2     | probability_2|
+|:-----------|-------------:|:----------|-------------:|
+|kampuchea   |     0.0137280|viet       |     0.0220493|
+|vietnames   |     0.0128502|nam        |     0.0219741|
+|lao         |     0.0127438|vietnames  |     0.0192654|
+|thailand    |     0.0126374|thailand   |     0.0182497|
+|chines      |     0.0114138|lao        |     0.0168201|
+|ethiopia    |     0.0098711|kampuchean |     0.0142619|
+|viet        |     0.0093657|chines     |     0.0139986|
+|kampuchean  |     0.0091795|china      |     0.0134719|
+|nam         |     0.0089667|kampuchea  |     0.0114780|
+|china       |     0.0086741|thai       |     0.0107256|
+|zionist     |     0.0139458|arab       |     0.0143440|
+|arab        |     0.0098636|egypt      |     0.0106638|
+|egypt       |     0.0085357|israel     |     0.0090574|
+|yemen       |     0.0078717|lebanes    |     0.0090282|
+|isra        |     0.0069372|isra       |     0.0083272|
+|entiti      |     0.0064208|zionist    |     0.0081811|
+|lebanes     |     0.0062733|jordan     |     0.0067792|
+|libyan      |     0.0061995|islam      |     0.0066039|
+|sudan       |     0.0058306|lebanon    |     0.0063118|
+|jordan      |     0.0057568|entiti     |     0.0062242|
+|soviet      |     0.0175825|socialist  |     0.0125423|
+|socialist   |     0.0113552|romania    |     0.0122521|
+|union       |     0.0107932|mongolian  |     0.0103363|
+|mongolian   |     0.0094668|ukrainian  |     0.0092624|
+|german      |     0.0088373|soviet     |     0.0091753|
+|europ       |     0.0087025|ssr        |     0.0084496|
+|poland      |     0.0080505|space      |     0.0073466|
+|albania     |     0.0074435|bulgaria   |     0.0072885|
+|imperialist |     0.0074210|hungarian  |     0.0067951|
+|albanian    |     0.0059598|europ      |     0.0064758|
+|presid      |     0.6953641|presid     |     0.7503569|
+|cooper      |     0.0005507|dialog     |     0.0005581|
+|dialog      |     0.0004569|program    |     0.0004706|
+|program     |     0.0004545|fortieth   |     0.0003729|
+|fortieth    |     0.0003800|align      |     0.0003627|
+|ocean       |     0.0003367|ocean      |     0.0002984|
+|indian      |     0.0003355|center     |     0.0002701|
+|sea         |     0.0003199|neighbor   |     0.0002495|
+|programm    |     0.0003115|dialogu    |     0.0002482|
+|per         |     0.0003030|spend      |     0.0002431|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-8.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 6 
+Model 2 - Topic 12 
+Model 1 - Topic 2 
+Model 2 - Topic 18 
+
+
+|term_1     | probability_1|term_2    | probability_2|
+|:----------|-------------:|:---------|-------------:|
+|guinea     |     0.0426157|guinea    |     0.0531918|
+|pacif      |     0.0269901|papua     |     0.0277031|
+|papua      |     0.0244836|franc     |     0.0266996|
+|zealand    |     0.0218172|solomon   |     0.0258299|
+|caledonia  |     0.0211772|equatori  |     0.0248264|
+|franc      |     0.0170708|pacif     |     0.0247595|
+|fee        |     0.0148310|caledonia |     0.0227525|
+|solomon    |     0.0113112|tunisia   |     0.0200096|
+|island     |     0.0094980|fee       |     0.0190061|
+|fiji       |     0.0092847|french    |     0.0127176|
+|viet       |     0.0220493|viet      |     0.0299134|
+|nam        |     0.0219741|nam       |     0.0286715|
+|vietnames  |     0.0192654|vietnames |     0.0201855|
+|thailand   |     0.0182497|cambodia  |     0.0158389|
+|lao        |     0.0168201|thailand  |     0.0153732|
+|kampuchean |     0.0142619|lao       |     0.0147523|
+|chines     |     0.0139986|asean     |     0.0146488|
+|china      |     0.0134719|cambodian |     0.0136657|
+|kampuchea  |     0.0114780|kampuchea |     0.0129930|
+|thai       |     0.0107256|china     |     0.0121651|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-9.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-10.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-11.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 10 
+Model 2 - Topic 12 
+Model 1 - Topic 12 
+Model 2 - Topic 17 
+
+
+|term_1    | probability_1|term_2    | probability_2|
+|:---------|-------------:|:---------|-------------:|
+|caribbean |     0.0242875|caribbean |     0.0212905|
+|saint     |     0.0192474|saint     |     0.0186563|
+|bahama    |     0.0160401|bahama    |     0.0175884|
+|haiti     |     0.0118812|trinidad  |     0.0150254|
+|barbado   |     0.0117050|haiti     |     0.0147762|
+|grenada   |     0.0112468|tobago    |     0.0144203|
+|lucia     |     0.0098722|grenada   |     0.0142067|
+|dominica  |     0.0090263|barbado   |     0.0113233|
+|banana    |     0.0088501|lucia     |     0.0108606|
+|nevi      |     0.0086739|dominica  |     0.0085824|
+|island    |     0.0332753|island    |     0.0381171|
+|pacif     |     0.0224835|pacif     |     0.0266393|
+|papua     |     0.0172557|fiji      |     0.0207365|
+|malawi    |     0.0171436|solomon   |     0.0200806|
+|solomon   |     0.0161728|papua     |     0.0157446|
+|fiji      |     0.0153139|nauru     |     0.0141778|
+|vanuatu   |     0.0110943|tuvalu    |     0.0119551|
+|marshal   |     0.0109822|palau     |     0.0117000|
+|zealand   |     0.0109449|vanuatu   |     0.0111535|
+|australia |     0.0101234|marshal   |     0.0104976|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-12.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-13.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-14.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 19 
+Model 2 - Topic 4 
+Model 1 - Topic 11 
+Model 2 - Topic 13 
+Model 1 - Topic 16 
+Model 2 - Topic 20 
+
+
+|term_1    | probability_1|term_2     | probability_2|
+|:---------|-------------:|:----------|-------------:|
+|saint     |     0.0157054|saint      |     0.0166049|
+|caribbean |     0.0150852|caribbean  |     0.0160530|
+|bahama    |     0.0150570|bahama     |     0.0126139|
+|grenada   |     0.0122943|madagascar |     0.0123592|
+|sid       |     0.0114767|grenada    |     0.0120195|
+|barbado   |     0.0114203|guyana     |     0.0117223|
+|island    |     0.0087703|dominica   |     0.0104911|
+|dominica  |     0.0087422|island     |     0.0101090|
+|botswana  |     0.0086576|lucia      |     0.0101090|
+|lucia     |     0.0079528|jamaica    |     0.0100241|
+|island    |     0.0255438|pacif      |     0.0249485|
+|pacif     |     0.0233716|island     |     0.0244274|
+|ocean     |     0.0174045|ocean      |     0.0197719|
+|solomon   |     0.0172298|solomon    |     0.0181390|
+|sid       |     0.0122363|papua      |     0.0120938|
+|papua     |     0.0109131|sri        |     0.0119896|
+|tuvalu    |     0.0108382|sid        |     0.0108084|
+|sri       |     0.0106884|australia  |     0.0100788|
+|mauritius |     0.0105386|micronesia |     0.0095924|
+|australia |     0.0099144|lanka      |     0.0094881|
+|african   |     0.0191619|african    |     0.0164538|
+|guinea    |     0.0187588|chad       |     0.0138434|
+|sahel     |     0.0144187|mali       |     0.0137191|
+|mali      |     0.0144187|guinea     |     0.0135948|
+|chad      |     0.0117526|sahel      |     0.0130975|
+|congo     |     0.0111945|burkina    |     0.0095756|
+|bissau    |     0.0106055|niger      |     0.0092855|
+|burkina   |     0.0102955|faso       |     0.0088712|
+|faso      |     0.0097375|africa     |     0.0083325|
+|niger     |     0.0088074|g          |     0.0080425|
+NULL</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="moving_lda_0219_files/figure-html/unnamed-chunk-9-15.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Model 1 - Topic 17 
+Model 2 - Topic 4 
+Model 1 - Topic 10 
+Model 2 - Topic 18 
+
+
+|term_1      | probability_1|term_2      | probability_2|
+|:-----------|-------------:|:-----------|-------------:|
+|ukrain      |     0.0215762|ukrain      |     0.0227151|
+|ireland     |     0.0138354|russia      |     0.0158697|
+|russian     |     0.0137175|russian     |     0.0116957|
+|russia      |     0.0136782|belarus     |     0.0092747|
+|marino      |     0.0109276|latvia      |     0.0086904|
+|latvia      |     0.0097881|aggress     |     0.0085234|
+|ukrainian   |     0.0094344|moldova     |     0.0079390|
+|poland      |     0.0084521|poland      |     0.0071877|
+|belarus     |     0.0080592|ukrainian   |     0.0071877|
+|san         |     0.0075876|war         |     0.0071042|
+|azerbaijan  |     0.0599473|azerbaijan  |     0.0637342|
+|armenia     |     0.0558605|armenia     |     0.0634100|
+|sudan       |     0.0319008|azerbaijani |     0.0155809|
+|viet        |     0.0209226|armenian    |     0.0146081|
+|nam         |     0.0194001|iraq        |     0.0115276|
+|armenian    |     0.0182783|azerbaijan’ |     0.0100684|
+|azerbaijani |     0.0136306|zealand     |     0.0099063|
+|karabakh    |     0.0115471|karabakh    |     0.0090956|
+|nagorno     |     0.0101849|nagorno     |     0.0073122|
+|south       |     0.0088226|iraqi       |     0.0069879|
+NULL</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -3,17 +3,18 @@ title: "liwc_modeling"
 author: "Jihyeon bae"
 date: "`r Sys.Date()`"
 output: html_document
-bibliography: "references.bib"
+bibliography: ../references.bib
 ---
 
 # Introduction
 
 In this project, I use linguistic features of state representatives' speech transcripts from the United Nations General Debate Corpus (UNGDC) to predict the regime type. The goal is twofold. First, we aim at running a hard test for a hypothesis that countries identified with distinct regime types show different linguistic styles. If I can predict the speaker's regime type based on linguistic features, it is a strong indication of the difference in linguistic features across regime types. Second, this project analyzes key linguistic features that act as a strong signal of the state's regime type. I further interpret substantive implication of strong coefficients and check how consistent their degrees of significance are across the models.
-This script uses the scores of LIWC features and merges with country-year level meta data. `"data/raw/controls/controls.csv"` has a battery of country-year level variables that might potentially confound the statistical modeling. With [`liwc_meta`](https://drive.google.com/file/d/1HBJpHd53BI0uq4z9rTkMsj2uEpKaq6aj/view?usp=share_link) dataset, at the country-year level, I run a series of statistical models that probe the relationship between linguistic features and sentiment scores of that speech. To preview, LIWC features alone have a strong predictive power on regime types, even without the help of meta data. 
+
+This script uses the scores of LIWC features and merges with country-year level meta data. `"data/raw/controls/controls.csv"` has a battery of country-year level variables that might potentially confound the statistical modeling. With `liwc_meta` dataset, at the country-year level, I run a series of statistical models that probe the relationship between linguistic features and sentiment scores of that speech. To preview, LIWC features alone have a strong predictive power on regime types, even without the help of meta data. 
 
 I test whether there is a correlation between a country's invocation of international legal norms and the regime type. Among many, I generate three key legal principles that are prominent throughout the history of international politics. These are principle of sovereignty, principle of non-intervention, and the principle of human rights. Binary variables capture whether each principle was invoked, and count variables measure the number of time it was mentioned within one speech.  
 
-```{r setup, include = FALSE}
+```{r setup, include=FALSE}
 library(readr)
 library(ggplot2)
 library(dplyr)
@@ -35,15 +36,14 @@ library(xpectr)
 library(kableExtra)
 library(modelsummary)
 
-liwc_df<-read_csv("data/interim/liwc_meta.csv")
 
+liwc_df<-read_csv("data/interim/liwc_meta.csv")
 
 liwc_df<-liwc_df%>%
   dplyr::select(-"...1")
 liwc_df$year<-as.numeric(liwc_df$year)
 
-#removing variables with too many missing values (missing above 70%)
-
+#removing variables with too many missing values (missingness above 70%)
 liwc_df <- liwc_df %>%
   dplyr::select(
     -cow_num_inter, -cow_inter, -cow_num_civil, -cow_civil, 
@@ -105,9 +105,10 @@ expand_formula <-
 }
 
 
+
 ```
 
-- I create separate blocks of variables to adjust inclusion of metadata for later analyses. 
+- I create separate blocks of variables to adjust inclusion of metadqta for later analyses. 
 ```{r}
 liwc_df<-liwc_df%>%
   rename("function_feature" = "function")
@@ -115,22 +116,25 @@ liwc_df<-liwc_df%>%
 liwc_df <-  liwc_df[liwc_df$year < 2021, ]
 validation <- liwc_df[liwc_df$year >= 2021, ]
 
-print(dim(liwc_df))
 
 liwc_inputs<-liwc_df[, 5:122]
 id <- liwc_df[, 1:3]
 y <- liwc_df[, 149]
 controls <- liwc_df[, c(126:148, 150:191)]
-
 data <- cbind(y, id, liwc_inputs)
 data_controls<- cbind(y, id, liwc_inputs, controls)
 controls_only<- cbind(y, id, controls)
+
 
 ```
 
 # Result of statistical analysis
 To supplement machine-learning approach of regression, I present a set of conventional statistical tests accounting for error correlation.  
 ```{r}
+data<-pdata.frame(data, index=c("ccode_iso","session", "year"), drop.index = TRUE)
+
+pdim(data)
+
 model <-plm(expand_formula("dd_democracy ~. ", names(data)),
              data = data,
              index = c("ccode_iso", "year"),
@@ -255,16 +259,6 @@ model1 <- glm(
   formula = dd_democracy ~ . - Segment,
   family = "binomial",
   data = trainN)
-
-model_summary3<-modelsummary(model1, 
-                             stars = TRUE, 
-                             output = "kableExtra", 
-                             escape = FALSE)
-
-model_summary3%>%kable_classic(full_width=F, html_font = "Cambria")%>%
-    scroll_box(width = "100%", height = "600px")
-   
-
 
 model1_pred<-predict(model1, testN, type = "response")
 
@@ -454,9 +448,7 @@ separate out countries by removing a set of countries, english speaking countrie
 
 ```{r}
 
-
-language <-read_excel("data/raw/language.xlsx")
-
+language <-read_excel("~/Desktop/UNGDC/data/raw/language.xlsx")
 language <- language%>%select(year="Year", ccode_iso = "ISO Code",lang = "Language" )
 
 language <- language %>% 
@@ -475,7 +467,6 @@ data<-data%>%
 
 # Train dataset based on non-english and test against english
 - Among 7270 speeches from 1970 until 2014, 99 were in English, while the other 3628 were in non-english. 3543 were NA values. Given a small number of samples that have complete observations of the language information after splitting into testing and training dataset, model5 performs poorly compared to the previous tests.
-
 ```{r}
 eng <- data[data$eng==1, ] 
 non_eng <- data[data$eng==0, ] 
@@ -546,7 +537,7 @@ text(x = 0.6, y = 0.3, label = paste("AUC =", round(aucValue, 3)),
 #save.image(file='exp5.RData')
 ```
 
-# Experiment 6: Training across different continents.
+# Experiment 6: Training across different ccontinents.
 
 I split the data along geographical groups. There are two options: region and continent. Continents and Regions are defined by the World Bank Development Indicators. Experiment 6 is based on continent categories. These are Africa, Americas, Asia, Europe, and Oceania.
 
@@ -699,27 +690,3 @@ for (cont in unique(data_controls$continent)) {
 }
 ```
 
-# LIWC on no_stop_words
-```{r, eval = FALSE}
-"~/Desktop/UNGDC/data/liwc/no_stop_words_analyzed.csv"
-```
-
-
-#Logit Boost
-
-```{r, eval = FALSE}
-library(caTools)
-  Data = data_controls
-  model = LogitBoost(Data, dd_democracy, nIter=20)
-  Lab   = predict(model, Data)
-  Prob  = predict(model, Data, type="raw")
-  t     = cbind(Lab, Prob)
-  t[1:10, ]
-
-  # two alternative call syntax
-  p=predict(model,Data)
-  q=predict.LogitBoost(model,Data)
-  pp=p[!is.na(p)]; qq=q[!is.na(q)]
-  stopifnot(pp == qq)
-
-```
