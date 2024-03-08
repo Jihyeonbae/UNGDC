@@ -4,8 +4,8 @@
 shellType <- "sh"
 
 # Define input and output file paths
-inputFileCSV <- "~/Desktop/UNGDC/data/processed/paragraph.csv"
-outputLocation <- "~/Desktop/UNGDC/data/liwc/paragraph_analyzed.csv"
+inputFileCSV <- "~/Desktop/UNGDC/data/processed/light.csv"
+outputLocation <- "~/Desktop/UNGDC/data/liwc/no_stop_words_analyzed.csv"
 
 # Expand the tilde to the full path
 inputFileCSV <- path.expand(inputFileCSV)
