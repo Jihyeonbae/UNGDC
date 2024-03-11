@@ -211,7 +211,7 @@ It requires more theoretical investigation to figure out why a linguistic tenden
 It can actually be the case that countries that are not speaking English lead to a confounding effect. Data available [here](https://www.infoplease.com/world/countries/languages-spoken-in-each-country-of-the-world). New variable "eng" is coded 1 when one of the spoken languages is English, 0 otherwise. 
 
 ```{r language}
-lang<-read_csv("../data/raw/countries_languages.csv")
+lang<-read_csv("data/raw/countries_languages.csv")
 # this is a metadata on country's official language
 
 lang<-lang%>%
@@ -566,6 +566,8 @@ prediction_errors <- prediction_errors %>%
   mutate(change=sum(abs(diff(dd_democracy)), na.rm=TRUE))
 
 #prop.table(table(prediction_errors$change, prediction_errors$error), margin = 1)
+
+library(janitor)
 
 prediction_errors%>%
   tabyl(change, error)%>% 
