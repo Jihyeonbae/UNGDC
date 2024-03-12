@@ -9,7 +9,6 @@ project:
     - "rmarkdown/liwc_randomforest.qmd"
     - "jupyter_notebook/functions_for_bert.ipynb"
   
-
  
   execute-dir: project
   
@@ -31,13 +30,13 @@ website:
      
       - section: Linguistic Analysis
         contents:
-          - text: LIWC
+          - text: LIWC Regression
             href: rmarkdown/liwc_analysis.qmd 
           - text: LIWC Random Forest
             href: rmarkdown/liwc_randomforest.qmd
-      - section: BERT
+      - section: BERT Embedding
         contents:
-          - text: BERT Functions
+          - text: Functions for BERT
             href: jupyter_notebook/functions_for_bert.ipynb
 
 format:
