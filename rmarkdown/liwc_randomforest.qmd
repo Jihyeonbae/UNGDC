@@ -380,7 +380,7 @@ There wasn't a significant change in accuracy compared to Trial 1. We found one 
 
 ::: {.callout-note appearance="simple"}
 
-"There is a drop in Leave-One-Covariate-Out(LOCO) Feature Importance of the two features the higher the correlation. However, in case of almost perfect multicollinearity, dropping the features that are correlated out of consideration to calculate the LOCO Feature Importance, the other feature can kind of"pick up" the effect on the target variable. As a consequence, there is no change in accuracy which means that there is only a small, up to no, increase in the error [@parr2018]."
+"There is a drop in Leave-One-Covariate-Out(LOCO) Feature Importance of the two features the higher the correlation. However, in case of almost perfect multicollinearity, dropping the features that are correlated out of consideration to calculate the LOCO Feature Importance, the other feature can kind of"pick up" the effect on the target variable. As a consequence, there is no change in accuracy which means that there is only a small, up to no, increase in the error [@parr]."
 ::: 
 
 #### Trial 3.1) Subsetting aggregate-level features only
@@ -605,13 +605,12 @@ varImpPlot(bag.democracy.tur, type=1, scale = TRUE, sort=T, n.var= 25, main= "De
 
 # Options for the future
 - Hierarchical clustering
-- scaling issue
+- Make sure scaling is done consistently
 - within country see how that changes
 - continuous variable for the output
-- Those who change frequently are those who the model fails to get right
+- Check if there's a pattern in errors
 
 
 
 
-# References
 
