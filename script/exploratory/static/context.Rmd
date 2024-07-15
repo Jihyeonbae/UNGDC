@@ -1,0 +1,51 @@
+```{r}
+library(readr)
+library(conText)
+library(dplyr)
+library(tidytext)
+library(quanteda)
+library(word2vec)
+corpus <- read_csv("~/Desktop/UNGDC/data/processed/cleaned.csv") %>%
+  select(-"...1")
+glove <- readRDS("~/Desktop/UNGDC/data/embeddings/glove.rds")
+meta <- read_csv("~/Desktop/UNGDC/data/processed/meta.csv") 
+
+corpus <- corpus(meta)
+toks <- tokens(corpus, 
+               remove_punct=T, 
+               remove_symbols=T, 
+               remove_numbers=T, 
+               remove_separators=T)
+
+toks_nostop <- tokens_select(toks, 
+                             pattern = stopwords("en"), 
+                             selection = "remove", min_nchar=3)
+
+feats <- dfm(toks_nostop, 
+             tolower=T, 
+             verbose = FALSE) %>% 
+  dfm_trim(min_termfreq = 5) %>% featnames()
+
+toks_nostop_feats <- tokens_select(toks_nostop, feats, padding = TRUE)
+
+
+sov_tokens <- tokens_context(x = toks_nostop_feats, pattern = "soverei*", window = 6L)
+
+sov_dfm <- dfm(sov_tokens)
+
+# build a document-embedding-matrix
+sov_dem <- dem(x = sov_dfm, 
+               pre_trained = glove, 
+               transform = TRUE, 
+               transform_matrix = cr_transform, 
+               verbose = TRUE)
+
+
+sov_wv <- matrix(colMeans(sov_dem), ncol = ncol(sov_dem)) %>% 
+  `rownames<-`("sovereignty")
+
+sov_wv_regime <- dem_group(sov_dem,
+                           groups = sov_dem@docvars$regime)
+```
+
+
