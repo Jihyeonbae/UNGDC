@@ -5,6 +5,7 @@ library(dplyr)
 library(tidytext)
 library(quanteda)
 library(word2vec)
+
 corpus <- read_csv("~/Desktop/UNGDC/data/processed/cleaned.csv") %>%
   select(-"...1")
 glove <- readRDS("~/Desktop/UNGDC/data/embeddings/glove.rds")
@@ -29,7 +30,10 @@ feats <- dfm(toks_nostop,
 toks_nostop_feats <- tokens_select(toks_nostop, feats, padding = TRUE)
 
 
-sov_tokens <- tokens_context(x = toks_nostop_feats, pattern = "soverei*", window = 6L)
+sov_tokens <- tokens_context(x = toks_nostop_feats, pattern = "soverei*", window = 10L)
+sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$dd_regime), ]
+
+head(docvars(sov_tokens),3)
 
 sov_dfm <- dfm(sov_tokens)
 
@@ -45,7 +49,99 @@ sov_wv <- matrix(colMeans(sov_dem), ncol = ncol(sov_dem)) %>%
   `rownames<-`("sovereignty")
 
 sov_wv_regime <- dem_group(sov_dem,
-                           groups = sov_dem@docvars$regime)
+                           groups = sov_dem@docvars$dd_regime)
+
+nns(sov_wv, pre_trained = glove, N = 25, candidates = sov_wv_regime@features, stem =FALSE, as_list = FALSE)
+```
+#Nearest neighbors
+Numeric regime category, following Cheibub, Ghandi and Vreeland (2010) (Parliamentary democracies = 0, Mixed democracies (with weak presidents) = 1, Presidential democracies = 2, Civilian autocracies = 3, Military dictatorships = 4, and Royal dictatorships = 5)
+```{r}
+feats <- featnames(dfm(sov_tokens))
+
+set.seed(2024)
+
+sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$dd_regime), ]
+
+
+sov_regime_nns <- get_nns(x = sov_tokens, N = 20,
+                          groups = (docvars(sov_tokens, 
+                                          'dd_regime')),
+                          candidates = feats,
+                          pre_trained = glove,
+                          transform = TRUE,
+                          transform_matrix = cr_transform,
+                          bootstrap = TRUE,
+                          num_bootstraps = 100,
+                          confidence_level = 0.95,
+                          as_list = TRUE
+                          )
+sov_regime_nns[["0"]]
+sov_regime_nns[["1"]] 
+sov_regime_nns[["5"]] #full dic
+
+
+```
+#cosine similarity
+```{r}
+# compute the cosine similarity between each group's embedding and a specific set of features
+set.seed(2024)
+get_cos_sim(x = sov_tokens,
+            groups = docvars(sov_tokens, 'dd_regime'),
+            features = c("right", "security", "border", "independence"),
+            pre_trained = glove,
+            transform = TRUE,
+            transform_matrix = cr_transform,
+            bootstrap = TRUE,
+            num_bootstraps = 100,
+            as_list = FALSE)
+```
+#nns_ratio
+```{r}
+set.seed(2024)
+sov_nns_ratio <- get_nns_ratio(x = sov_tokens, 
+              N = 20,
+              groups = docvars(sov_tokens, 'democracy'),
+              numerator = "1",
+              candidates = feats,
+              pre_trained = glove,
+              transform = TRUE,
+              transform_matrix = cr_transform,
+              bootstrap = TRUE,
+              num_bootstraps = 100,
+              permute = TRUE,
+              num_permutations = 100,
+              verbose = FALSE)
+
 ```
 
+#nearest contexts
+computing cosine similarities between group embeddings and individual contexts
 
+```{r}
+set.seed(2024)
+sov_ncs <- ncs(x = sov_wv_regime,
+               contexts_dem = sov_dem, 
+               contexts = sov_tokens, 
+               N=10,
+               as_list = TRUE)
+```
+
+# stemming option turned on
+```{r}
+# find nearest neighbors by party using stemming
+sov_nns_stem <- nns(sov_wv_regime, pre_trained = glove, N = 5, candidates = feats, stem = TRUE, as_list = TRUE)
+```
+
+#regression
+```{r}
+set.seed(2024)
+model1 <- conText(formula =  . ~ dd_regime,
+                  data = toks_nostop_feats,
+                  pre_trained = glove,
+                  transform = TRUE, transform_matrix = cr_transform,
+                  bootstrap = TRUE,
+                   confidence_level = 0.95,
+                  permute = TRUE, num_permutations = 100,
+                  window = 6, case_insensitive = TRUE,
+                  verbose = FALSE)
+```
