@@ -2,8 +2,11 @@
 .Rhistory
 .RData
 .Ruserdata
+/.DS_Store
+.DS_Store
 notebooks/preprocessing/RDS_generator.R
 notebooks/preprocessing/RDS_generator.R
+**/.ipynb_checkpoints/*
 data/raw/
 output/lda/decade_0111/
 output/lda/decade_0114/
