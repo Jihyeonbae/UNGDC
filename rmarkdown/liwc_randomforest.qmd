@@ -14,8 +14,8 @@ To compare the performance of logistic regression, we use non-parametric random 
 
 ```{r setup, warning=FALSE, message=FALSE}
 library(readr)
-library(corrr)
 library(ggplot2)
+library(corrr)
 library(gmodels)
 library(dplyr)
 library(tidyverse)
@@ -33,13 +33,15 @@ library(kableExtra)
 
 # Read in the dataset
 
-This dataset includes two identifiers (ccode_iso, year), all of the LIWC features, as well as the output variable we are aiming to predict. Data generation process for [`data`](%22../data/processed/rf_data.csv%22) can be found at [`liw_analysis.qmd`](%22../rmarkdown/liwc_analysis.qmd%22).
+This dataset includes two identifiers (ccode_iso, year), all of the LIWC features, as well as the output variable we are aiming to predict. 
+Data generation process for [`data`](%22../data/processed/rf_data.csv%22) can be found at [`liw_analysis.qmd`](%22../rmarkdown/liwc_analysis.qmd%22).
 
 ```{r reading in data and pre-processing}
-data<-read_csv("~/Desktop/UNGDC/data/processed/rf_data.csv")
+data<-read_csv("~/Desktop/UNGDC/data/processed/liwc_meta.csv")
 
 data<-data %>%
   dplyr::select(-"...1")
+
 data$year<-as.numeric(data$year)
 data<-data[, c(1:122,149) ]
 

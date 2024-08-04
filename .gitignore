@@ -11,5 +11,6 @@ output/lda/decade_0115/
 output/lda/decade_sov_0115/
 output/lda/decade_sov_0116/
 output/lda/decade_sov_0116_2/
-
+data/
+output/
 /.quarto/
