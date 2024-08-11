@@ -7,29 +7,36 @@ date: "2024-08-10"
 ```{r results = 'asis'}
 library(readr)
 
-emb <- read_csv("~/Desktop/UNGDC/output/embedding_glove/liwc_meta_with_keyword_distances.csv")
+library(dplyr)
+emb <- read_csv("~/Downloads/liwc_meta_with_keyword_distances.csv")
+emb <- emb %>%
+  rename_with(~ gsub("distance_between_", "", .x))  
 
+emb<-emb %>%
+  rename(sovereign_rights = rights_sovereign,
+         sovereign_liberal = liberal_sovereign,
+         sovereign_war = war_sovereign
+         )
 
 library(plm)
 library(broom)
 library(stargazer)
 
 #################################################################################
-library(plm)
-library(stargazer)
 library(dplyr)
 
 # Define your dependent variables
 dependent_vars <- c(
-  "distance_between_sovereign_territory",
-  "distance_between_sovereign_responsibility",
-  "distance_between_rights_responsibility",
-  "distance_between_rights_sovereign",
-  "distance_between_sovereign_colonial",
-  "distance_between_sovereign_westphalia",
-  "distance_between_liberal_sovereign",
-  "distance_between_war_sovereign"
+  "sovereign_territory",
+  "sovereign_responsibility", 
+  "sovereign_colonial",
+  "sovereign_westphalia", 
+  "sovereign_liberal", 
+  "sovereign_war", 
+  "sovereign_rights",
+  "rights_responsibility"
 )
+
 
 # Initialize an empty list to store models
 models <- list()
@@ -41,25 +48,51 @@ models <- list()
 
 # Loop through dependent variables and effect types to create models
 for (dep_var in dependent_vars) {
-  models[[paste0(dep_var, "_twoways")]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy + Clout + WC + emo_neg + mid_num_dispute + focuspast")), 
-                                               effect = "twoways", 
-                                               index = c("ccode_iso", "year"), 
+  models[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy + risk + emo_anx")), 
+                                               effect = "time", 
                                                data = emb)
-  
-
 }
- 
-# Create a stargazer table for all models
-stargazer(models, 
-          type = "text", # Change to "text" for console output
-          title = "Model Comparison by Different Effects and Dependent Variables",
-          dep.var.labels.include = TRUE,
-          column.labels = dependent_vars,  # Use dependent variable names as column labels
-          dep.var.labels = dependent_vars,
-          covariate.labels = c("Polyarchy", "Clout", "WC", "Negative Emotion", "Mid Number of Disputes", "Focus Past"),
-          omit.stat = c("f", "ser"), 
-          model.numbers = FALSE)
+
+library(modelsummary)
+# Create a modelsummary table
+modelsummary(
+  models, 
+  output = "html", # Output to HTML for better display in an R Markdown document
+  stars = TRUE
+)
+
+
+```
 
 
 
+# visualization
+```{r}
+library(ggplot2)
+
+model_names <- paste0(dependent_vars)
+
+model_summaries <- lapply(seq_along(models), function(i) {
+  tidy(models[[i]]) %>%
+    mutate(model = model_names[i])
+})
+
+# Combine all model summaries into one data frame
+model_results <- bind_rows(model_summaries)
+
+# Filter out intercepts and create a plot
+plot_data <- model_results %>%
+  filter(term != "(Intercept)") %>%
+  mutate(term = factor(term, levels = c("v2x_polyarchy", "Clout", "WC", "emo_neg", "mid_num_dispute", "focuspast"))) %>%
+  ggplot(aes(x = term, y = estimate, color = model)) +
+  geom_point(position = position_dodge(width = 0.4)) +
+  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
+                width = 0.2, position = position_dodge(width = 0.4)) +
+  labs(title = "Regression Coefficients and 95% Confidence Intervals",
+       x = "Independent Variables",
+       y = "Coefficient Estimate") +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(plot_data)
 ```
