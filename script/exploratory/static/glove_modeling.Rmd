@@ -1,0 +1,65 @@
+---
+title: "glove_regression"
+output: html_document
+date: "2024-08-10"
+---
+
+```{r results = 'asis'}
+library(readr)
+
+emb <- read_csv("~/Desktop/UNGDC/output/embedding_glove/liwc_meta_with_keyword_distances.csv")
+
+
+library(plm)
+library(broom)
+library(stargazer)
+
+#################################################################################
+library(plm)
+library(stargazer)
+library(dplyr)
+
+# Define your dependent variables
+dependent_vars <- c(
+  "distance_between_sovereign_territory",
+  "distance_between_sovereign_responsibility",
+  "distance_between_rights_responsibility",
+  "distance_between_rights_sovereign",
+  "distance_between_sovereign_colonial",
+  "distance_between_sovereign_westphalia",
+  "distance_between_liberal_sovereign",
+  "distance_between_war_sovereign"
+)
+
+# Initialize an empty list to store models
+models <- list()
+
+
+# Scale the variables by multiplying by 100
+#emb[dependent_vars] <- lapply(emb[dependent_vars], function(x) x * 100)
+
+
+# Loop through dependent variables and effect types to create models
+for (dep_var in dependent_vars) {
+  models[[paste0(dep_var, "_twoways")]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy + Clout + WC + emo_neg + mid_num_dispute + focuspast")), 
+                                               effect = "twoways", 
+                                               index = c("ccode_iso", "year"), 
+                                               data = emb)
+  
+
+}
+ 
+# Create a stargazer table for all models
+stargazer(models, 
+          type = "text", # Change to "text" for console output
+          title = "Model Comparison by Different Effects and Dependent Variables",
+          dep.var.labels.include = TRUE,
+          column.labels = dependent_vars,  # Use dependent variable names as column labels
+          dep.var.labels = dependent_vars,
+          covariate.labels = c("Polyarchy", "Clout", "WC", "Negative Emotion", "Mid Number of Disputes", "Focus Past"),
+          omit.stat = c("f", "ser"), 
+          model.numbers = FALSE)
+
+
+
+```
