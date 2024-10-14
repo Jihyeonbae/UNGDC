@@ -1,0 +1,232 @@
+---
+title: "glove_regression"
+output: html_document
+date: "2024-08-10"
+---
+
+Proximity in the embedded semantic space. 
+
+```{r results = 'asis', warning = FALSE}
+library(readr)
+library(dplyr)
+library(plm)
+library(broom)
+library(stargazer)
+library(modelsummary)
+
+# Load data
+emb <- read_csv("~/Downloads/liwc_meta_with_keyword_distances_euclidean.csv")
+
+# Rename columns
+emb <- emb %>%
+  rename_with(~ gsub("distance_", "", .x)) 
+
+# Apply log transformation to distances
+emb <- emb %>%
+  mutate(across(starts_with("distance_"), log))  # Log-transform distance variables
+# List of dependent variables (log-transformed distances)
+# Original variable names
+euclidean_vars <- c(
+  "sovereign_territory_cosine",
+  "sovereign_territory_euclidean",
+  "sovereign_responsibility_cosine",
+  "sovereign_responsibility_euclidean",
+  "sovereign_liberal_cosine",
+  "sovereign_liberal_euclidean",
+  "sovereign_colonial_cosine",
+  "sovereign_colonial_euclidean",
+  "sovereign_westphalia_cosine",
+  "sovereign_westphalia_euclidean",
+  "sovereign_rights_cosine",
+  "sovereign_rights_euclidean",
+  "sovereign_war_cosine",
+  "sovereign_war_euclidean",
+  "rights_responsibility_cosine",
+  "rights_responsibility_euclidean",
+  "sovereign_law_cosine",
+  "sovereign_law_euclidean"
+)
+
+# Standardize the variables
+for (var in euclidean_vars) {
+  emb[[paste0("standardized_", var)]] <- (emb[[var]] - mean(emb[[var]], na.rm = TRUE)) / sd(emb[[var]], na.rm = TRUE)
+}
+
+# If you want to see the names of the new standardized variables
+standardized_vars <- paste0("standardized_", euclidean_vars)
+print(standardized_vars)
+
+
+
+```
+
+# Baseline Model in year FE and twoway FE
+```{r}
+
+baseline_time <- list()
+baseline_twoway <- list()
+
+for (dep_var in standardized_vars) {
+  baseline_time[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "time", 
+                           data = emb)
+}
+
+modelsummary(
+  baseline_time, 
+  output = "html", 
+  stars = TRUE
+)
+
+##############################################################################
+# Loop through dependent variables and create models
+for (dep_var in standardized_vars) {
+  baseline_twoway[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "twoways",
+                           index = c("year", "ccode_iso"),
+                           model ="within",
+                           data = emb)
+}
+
+modelsummary(
+  baseline_twoway, 
+  output = "html", 
+  stars = TRUE
+)
+
+```
+
+# pre-check
+```{r, warning = FALSE}
+library(car)
+
+vif(lm(v2x_polyarchy ~ risk + focuspast + wdi_gdpcapcon2015 + mid_dispute + cow_num_inter + cow_num_civil, data = emb))
+
+library(ggplot2)
+library(tidyr)
+
+long_data <- emb %>%
+  pivot_longer(cols = all_of(standardized_vars), names_to = "variable", values_to = "value")
+
+ggplot(long_data, 
+       aes(x = year, y = value, color = variable)) +
+  geom_point() +
+  facet_wrap(~ dd_regime) + 
+  labs(title = "Variation of Distance Westphalia Sovereign Over Time",
+       x = "Time",
+       y = "Value",
+       color = "Dependent Variable") +
+  theme_minimal()
+
+
+standardized_vars <- c(
+  "sovereign_territory_euclidean",
+  "sovereign_responsibility_euclidean",
+  "sovereign_liberal_euclidean",
+  "sovereign_colonial_euclidean",
+  "sovereign_westphalia_euclidean",
+  "sovereign_rights_euclidean",
+  "sovereign_war_euclidean",
+  "rights_responsibility_euclidean",
+  "sovereign_law_euclidean"
+)
+
+# Reshape the data for plotting
+long_data <- emb %>% 
+  pivot_longer(cols = all_of(standardized_vars), names_to = "variable", values_to = "value")
+
+# Create the plot
+ggplot(long_data, 
+       aes(x = year, y = value, color = variable)) + 
+  geom_point() + 
+  facet_wrap(~ dd_regime) + 
+  labs(title = "Variation of Euclidean Distances Over Time",
+       x = "Time",
+       y = "Value",
+       color = "Dependent Variable") + 
+  theme_minimal()
+```
+
+
+# covariates
+```{r}
+models_full <- list()
+models_twoway <- list()
+covariates <- c("risk", "focuspast", "wdi_gdpcapcon2015", "mid_dispute", "cow_num_inter", "cow_num_civil")
+
+for (dep_var in standardized_vars) {
+  formula_str <- paste(dep_var, "~ v2x_polyarchy +", paste(covariates, collapse = " + "))
+  
+  models_full[[dep_var]] <- plm(as.formula(formula_str), 
+                           effect = "time", 
+                           index = "year",
+                           data = emb)
+}
+
+# Display the models in HTML format
+library(modelsummary)
+modelsummary(
+  models_full, 
+  output = "html", 
+  stars = TRUE
+)
+
+
+
+
+#################################################
+for (dep_var in standardized_vars) {
+  formula_str <- paste(dep_var, "~ v2x_polyarchy +", paste(covariates, collapse = " + "))
+  
+  models_twoway[[dep_var]] <- plm(as.formula(formula_str), 
+                                effect = "twoways",     
+                                model = "within", 
+                                index = c("ccode_iso", "year"), 
+                                data = emb)
+}
+
+modelsummary(
+  models_twoway, 
+  output = "html", 
+  stars = TRUE
+)
+```
+
+# visualization
+```{r}
+library(ggplot2)
+
+model_names <- paste0(standardized_vars)
+
+model_summaries <- lapply(seq_along(models_full), function(i) {
+  tidy(models_full[[i]]) %>%
+    mutate(models_full = model_names[i])
+})
+
+model_results <- bind_rows(model_summaries)
+
+plot_data <- model_results %>%
+  filter(term != "(Intercept)") %>%
+  drop_na() %>%
+  mutate(term = factor(term, levels = c("v2x_polyarchy", "Clout", "WC", "emo_neg", "mid_num_dispute", "focuspast"))) %>%
+  ggplot(aes(x = term, y = estimate, color = models_full)) +
+  geom_point(position = position_dodge(width = 0.4)) +
+  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
+                width = 0.2, position = position_dodge(width = 0.4)) +
+  labs(title = "Proximity Coefficients and 95% Confidence Intervals",
+       x = "Independent Variables",
+       y = "Coefficient Estimate") +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+print(plot_data)
+
+```
+
+# Trials
+```{r}
+
+```
+
+
+
