@@ -4,67 +4,133 @@ output: html_document
 date: "2024-08-10"
 ---
 
+Proximity in the embedded semantic space. 
+
 ```{r results = 'asis'}
 library(readr)
-
 library(dplyr)
-emb <- read_csv("~/Downloads/liwc_meta_with_keyword_distances.csv")
-emb <- emb %>%
-  rename_with(~ gsub("distance_between_", "", .x))  
-
-emb<-emb %>%
-  rename(sovereign_rights = rights_sovereign,
-         sovereign_liberal = liberal_sovereign,
-         sovereign_war = war_sovereign
-         )
-
 library(plm)
 library(broom)
 library(stargazer)
 
-#################################################################################
-library(dplyr)
+# Load data
+emb <- read_csv("~/Downloads/liwc_meta_with_keyword_distances.csv")
 
-# Define your dependent variables
+# Rename columns
+emb <- emb %>%
+  rename_with(~ gsub("distance_between_", "distance_", .x)) %>%
+  rename("distance_territory_sovereign" = "distance_sovereign_territory",
+         "distance_westphalia_sovereign" = "distance_sovereign_westphalia",
+         "distance_responsibility_sovereign" = "distance_sovereign_responsibility",
+         "distance_colonial_sovereign" = "distance_sovereign_colonial")
+
+# Apply log transformation to distances
+emb <- emb %>%
+  mutate(across(starts_with("distance_"), log))  # Log-transform distance variables
+
+# List of dependent variables (log-transformed distances)
 dependent_vars <- c(
-  "sovereign_territory",
-  "sovereign_responsibility", 
-  "sovereign_colonial",
-  "sovereign_westphalia", 
-  "sovereign_liberal", 
-  "sovereign_war", 
-  "sovereign_rights",
-  "rights_responsibility"
+  "distance_territory_sovereign",
+  "distance_responsibility_sovereign", 
+  "distance_colonial_sovereign",
+  "distance_westphalia_sovereign", 
+  "distance_liberal_sovereign", 
+  "distance_war_sovereign", 
+  "distance_rights_sovereign",
+  "distance_rights_responsibility"
 )
-
 
 # Initialize an empty list to store models
 models <- list()
-
-
-# Scale the variables by multiplying by 100
-#emb[dependent_vars] <- lapply(emb[dependent_vars], function(x) x * 100)
-
-
-# Loop through dependent variables and effect types to create models
+baseline_twoway <- list()
+# Loop through dependent variables and create models
 for (dep_var in dependent_vars) {
-  models[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy + risk + emo_anx")), 
-                                               effect = "time", 
-                                               data = emb)
+  models[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "time", 
+                           data = emb)
 }
 
+# Display the models in HTML format
 library(modelsummary)
-# Create a modelsummary table
 modelsummary(
   models, 
-  output = "html", # Output to HTML for better display in an R Markdown document
+  output = "html", 
+  stars = TRUE
+)
+
+##############################################################################
+# Loop through dependent variables and create models
+for (dep_var in dependent_vars) {
+  baseline_twoway[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "twoways",
+                           index = c("year", "ccode_iso"),
+                           model ="within",
+                           data = emb)
+}
+
+modelsummary(
+  baseline_twoway, 
+  output = "html", 
   stars = TRUE
 )
 
 
+
+```
+
+# pre-check
+```{r}
+# Load necessary library
+library(car)
+
+vif(lm(v2x_polyarchy ~ risk + focuspast + wdi_gdpcapcon2015 + mid_dispute + cow_num_inter + cow_num_civil, data = emb))
+
 ```
 
 
+# covariates
+```{r}
+models_full <- list()
+models_twoway <- list()
+covariates <- c("risk", "focuspast", "wdi_gdpcapcon2015", "mid_dispute", "cow_num_inter", "cow_num_civil")
+
+for (dep_var in dependent_vars) {
+  formula_str <- paste(dep_var, "~ v2x_polyarchy +", paste(covariates, collapse = " + "))
+  
+  models_full[[dep_var]] <- plm(as.formula(formula_str), 
+                           effect = "time", 
+                           index = "year",
+                           data = emb)
+}
+
+# Display the models in HTML format
+library(modelsummary)
+modelsummary(
+  models_full, 
+  output = "html", 
+  stars = TRUE
+)
+
+
+
+
+#################################################
+for (dep_var in dependent_vars) {
+  formula_str <- paste(dep_var, "~ v2x_polyarchy +", paste(covariates, collapse = " + "))
+  
+  models_twoway[[dep_var]] <- plm(as.formula(formula_str), 
+                                effect = "twoways",     
+                                model = "within", 
+                                index = c("ccode_iso", "year"), 
+                                data = emb)
+}
+
+modelsummary(
+  models_twoway, 
+  output = "html", 
+  stars = TRUE
+)
+```
 
 # visualization
 ```{r}
@@ -77,10 +143,8 @@ model_summaries <- lapply(seq_along(models), function(i) {
     mutate(model = model_names[i])
 })
 
-# Combine all model summaries into one data frame
 model_results <- bind_rows(model_summaries)
 
-# Filter out intercepts and create a plot
 plot_data <- model_results %>%
   filter(term != "(Intercept)") %>%
   mutate(term = factor(term, levels = c("v2x_polyarchy", "Clout", "WC", "emo_neg", "mid_num_dispute", "focuspast"))) %>%
@@ -88,11 +152,20 @@ plot_data <- model_results %>%
   geom_point(position = position_dodge(width = 0.4)) +
   geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
                 width = 0.2, position = position_dodge(width = 0.4)) +
-  labs(title = "Regression Coefficients and 95% Confidence Intervals",
+  labs(title = "Proximity Coefficients and 95% Confidence Intervals",
        x = "Independent Variables",
        y = "Coefficient Estimate") +
   theme_minimal(base_family = "Times New Roman") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 print(plot_data)
+
 ```
+
+# Trials
+```{r}
+
+```
+
+
+
