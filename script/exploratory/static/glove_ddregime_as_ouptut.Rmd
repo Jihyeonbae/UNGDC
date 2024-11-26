@@ -1,0 +1,548 @@
+---
+title: "glove_regression"
+output: html_document
+date: "2024-08-10"
+---
+
+Proximity in the embedded semantic space. 
+
+```{r results = 'asis', warning = FALSE}
+library(readr)
+library(dplyr)
+library(plm)
+library(broom)
+library(stargazer)
+library(modelsummary)
+library(ggplot2)
+library(stringr)
+
+
+emb <- read_csv("/Users/jihyeonbae/Desktop/UNGDC/output/embedding_glove/liwc_meta_with_keyword_distances.csv")
+
+emb <- emb %>%
+  rename_with(~ gsub("distance_", "", .x)) 
+emb <- emb %>%
+  rename_with(~ gsub("between_", "", .x)) 
+
+emb <- emb %>%
+  mutate(across(starts_with("distance_"), log))  
+
+
+
+cosine_vars <- c(
+    "sovereignty_territory",
+    "sovereignty_colonial",
+    "sovereignty_westphalia"
+)
+```
+
+# Baseline Model in year FE and twoway FE using cosine distance
+```{r}
+baseline_time <- list()
+baseline_twoway <- list()
+
+for (dep_var in cosine_vars) {
+  baseline_time[[dep_var]] <- 
+    plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "time", 
+                           data = emb)
+}
+
+modelsummary(
+  baseline_time, 
+  output = "html", 
+  stars = TRUE
+)
+
+##############################################################################
+# Loop through dependent variables and create models
+for (dep_var in cosine_vars) {
+  baseline_twoway[[dep_var]] <- plm(as.formula(paste(dep_var, "~ v2x_polyarchy")), 
+                           effect = "twoways",
+                           index = c("year", "ccode_iso"),
+                           model ="within",
+                           data = emb)
+}
+
+modelsummary(
+  baseline_twoway, 
+  output = "html", 
+  stars = TRUE
+)
+
+```
+
+# pre-check
+```{r, warning = FALSE}
+library(car)
+library(tidyr)
+
+vif(lm(v2x_polyarchy ~ risk + focuspast + mid_dispute + cow_num_inter + cow_num_civil, data = emb))
+
+long_data <- emb %>%
+  pivot_longer(
+    cols = cosine_vars, # Select columns with distances
+    names_to = "variable",                  # New column for variable names
+    values_to = "value"                     # New column for values
+  )
+# Label dd_regime levels
+regime_labels <- c(
+  "0" = "Parliamentary democracy",
+  "1" = "Mixed democracy",
+  "2" = "Presidential democracy",
+  "3" = "Civilian dictatorship",
+  "4" = "Military dictatorship",
+  "5" = "Royal dictatorship"
+)
+
+long_data_filtered <- long_data %>%
+  mutate(
+    dd_regime = as.factor(dd_regime),  # Convert dd_regime to a factor
+    dd_regime = recode(dd_regime, !!!regime_labels)  # Apply labels
+  )
+
+# Iterate over each dependent variable
+for (var in unique_variables) {
+  # Filter data for the specific variable
+  plot_data <- long_data_filtered %>%
+    filter(variable == var)
+  
+  # Generate the plot with fixed y-axis and labeled facets
+  p <- ggplot(plot_data, aes(x = year, y = value)) +
+    geom_point(color = "black", alpha = 0.6) +  # Black points
+    geom_smooth(method = "lm", color = "red", se = FALSE, size = 1) +  # Red trendline
+    facet_wrap(~ dd_regime, scales = "fixed") +  # Fixed y-axis
+    labs(
+      title = paste("Variation of", var, "Across Regime Types"),
+      x = "Year",
+      y = "Value"
+    ) +
+    theme_minimal(base_family = "Times New Roman") +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(size = 14, face = "bold")
+    )
+  
+  # Print the plot
+  print(p)
+  
+  # Save the plot to Desktop
+  ggsave(
+    filename = paste0("~/Desktop/facet_plot_with_trendline_", var, ".png"),
+    plot = p,
+    width = 10,
+    height = 6
+  )
+}
+
+
+
+```
+
+
+# covariates
+```{r, warning = FALSE}
+models_year <- list()
+models_twoway <- list()
+
+covariates <- c("risk", "WC", "WPS", "tone_neg", "focuspast", "mid_num_dispute", "ht_colonial")
+emb$dd_regime <- as.factor(emb$dd_regime)
+
+#################################################
+for (dep_var in cosine_vars) {
+  formula_str <- paste(dep_var, "~ dd_regime +", paste(covariates, collapse = " + "))
+  
+  models_year[[dep_var]] <- plm(
+    as.formula(formula_str), 
+    effect = "time", 
+    model = "within", 
+    index = "year",  
+    data = emb
+  )
+}
+
+modelsummary(
+  models_year, 
+  output = "html", 
+  caption = "Models include year fixed effects",
+  stars = TRUE
+)
+
+#################################################
+for (dep_var in cosine_vars) {
+  formula_str <- paste(dep_var, "~ dd_regime +", paste(covariates, collapse = " + "))
+  
+  models_twoway[[dep_var]] <- plm(as.formula(formula_str), 
+                                effect = "twoways",     
+                                model = "within", 
+                                index = c("ccode_iso", "year"), 
+                                data = emb)
+}
+
+modelsummary(
+  models_twoway, 
+  output = "html", 
+  caption = "Models include two-ways fixed effects",
+  stars = TRUE
+)
+
+
+# Ensure dd_regime is properly labeled
+regime_labels <- c(
+  "Parliamentary democracy",
+  "Mixed (semi-presidential) democracy",
+  "Presidential democracy",
+  "Civilian dictatorship",
+  "Military dictatorship",
+  "Royal dictatorship"
+)
+emb$dd_regime <- factor(emb$dd_regime, levels = 0:5, labels = regime_labels)
+```
+
+# Visualizing coefficient plots for models using dd_regime as the main IV
+```{r}
+library(ggplot2)
+library(dplyr)
+library(broom)
+library(modelsummary)
+
+# Create labels for the independent variables
+covariates_labels <- c(
+  "risk" = "Perceived Risk",
+  "WC" = "Word Count",
+  "WPS" = "Words per Sentence",
+  "tone_neg" = "Negative Tone",
+  "focuspast" = "Focus on Past",
+  "mid_num_dispute" = "MID Disputes",
+  "ht_colonial" = "Colonial History",
+  "dd_regime1" = "Mixed Democracy",
+  "dd_regime2" = "Presidential Democracy",
+  "dd_regime3" = "Civilian Dictatorship",
+  "dd_regime4" = "Military Dictatorship",
+  "dd_regime5" = "Royal Dictatorship"
+)
+# Prepare data for `models_year`
+
+model_results_year <- lapply(seq_along(models_year), function(i) {
+  tidy(models_year[[i]]) %>%
+    mutate(`Dependent Variable` = names(models_year)[i], model = "Year Fixed Effects")
+}) %>%
+  bind_rows()
+
+# Prepare data for `models_twoway`
+model_results_twoway <- lapply(seq_along(models_twoway), function(i) {
+  tidy(models_twoway[[i]]) %>%
+    mutate(`Dependent Variable` = names(models_twoway)[i], model = "Two-Way Fixed Effects")
+}) %>%
+  bind_rows()
+
+# Define different shapes for dependent variables
+shape_mapping <- c(
+  "sovereignty_territory" = 17,
+  "sovereignty_colonial" = 18,
+  "sovereignty_westphalia" = 19
+)
+
+# Plot for `models_year`
+plot_year <- model_results_year %>%
+  ggplot(aes(x = term, y = estimate, shape = `Dependent Variable`)) +
+  geom_point(position = position_dodge(width = 0.5), size = 3) +
+  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
+                width = 0.3, position = position_dodge(width = 0.5)) +
+  ylim(-0.01, 0.01) +
+  labs(
+    title = "Coefficients for Semantic Distance",
+    subtitle = "Estimated coefficients with 95% confidence intervals",
+    x = "Independent Variables",
+    y = "Coefficient Estimate",
+    caption = "Note: Models include year fixed effects."
+  ) +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    axis.title = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic")
+  ) +
+  scale_shape_manual(values = shape_mapping)
+
+# Plot for `models_twoway`
+plot_twoway <- model_results_twoway %>%
+  ggplot(aes(x = term, y = estimate, shape = `Dependent Variable`)) +
+  geom_point(position = position_dodge(width = 0.5), size = 3) +
+  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
+                width = 0.3, position = position_dodge(width = 0.5)) +
+  ylim(-0.01, 0.01) +
+  labs(
+    title = "Coefficients for Semantic Distance",
+    subtitle = "Estimated coefficients with 95% confidence intervals",
+    x = "Independent Variables",
+    y = "Coefficient Estimate",
+    caption = "Note: Models include two-way fixed effects."
+  ) +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+    axis.title = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    plot.title = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic")
+  ) +
+  scale_shape_manual(values = shape_mapping)
+
+# Save the plots as PNG files
+ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/coefficients_year_shapes.png", plot_year, width = 10, height = 6, dpi = 300)
+ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/coefficients_twoway_shapes.png", plot_twoway, width = 10, height = 6, dpi = 300)
+
+# Display the plots
+print(plot_year)
+print(plot_twoway)
+
+
+```
+
+
+# interaction term risk * dd_regime
+```{r}
+# Interaction Effect Analysis with Year Fixed Effects and Categorical `dd_regime`
+interaction_models_year <- list()
+
+for (dep_var in cosine_vars) {
+  formula <- as.formula(paste(dep_var, "~ risk * dd_regime + WC + WPS + tone_neg + focuspast + mid_num_dispute + ht_colonial"))
+  
+  interaction_models_year[[dep_var]] <- plm(
+    formula,
+    data = emb,
+    model = "within",
+    effect = "time",
+    index = "year"
+  )
+}
+
+# Generate Predictions for Interaction Visualization (Year FE)
+interaction_predictions_year <- list()
+
+# Define levels for `dd_regime`
+regime_levels <- levels(as.factor(emb$dd_regime))
+
+for (dep_var in cosine_vars) {
+  model <- interaction_models_year[[dep_var]]
+  coefs <- coef(model)
+  
+  pred_data <- expand.grid(
+    risk = seq(0, 1, length.out = 5),  # Different levels of `risk`
+    dd_regime = regime_levels,         # Categorical levels of `dd_regime`
+    WC = 2602,
+    WPS = 29,
+    tone_neg = 0.5,
+    focuspast = 0.2,
+    mid_num_dispute = 1,
+    ht_colonial = 1
+  )
+  
+  # Compute predicted values based on coefficients
+  pred_data$predicted_value <- with(pred_data, 
+    (ifelse(!is.na(coefs["(Intercept)"]), coefs["(Intercept)"], 0)) +
+    (ifelse(!is.na(coefs["risk"]), coefs["risk"], 0) * risk) +
+    (ifelse(!is.na(coefs["dd_regimeMixed (semi-presidential) democracy"]), coefs["dd_regimeMixed (semi-presidential) democracy"], 0) * (dd_regime == "Mixed (semi-presidential) democracy")) +
+    (ifelse(!is.na(coefs["dd_regimePresidential democracy"]), coefs["dd_regimePresidential democracy"], 0) * (dd_regime == "Presidential democracy")) +
+    (ifelse(!is.na(coefs["dd_regimeCivilian dictatorship"]), coefs["dd_regimeCivilian dictatorship"], 0) * (dd_regime == "Civilian dictatorship")) +
+    (ifelse(!is.na(coefs["dd_regimeMilitary dictatorship"]), coefs["dd_regimeMilitary dictatorship"], 0) * (dd_regime == "Military dictatorship")) +
+    (ifelse(!is.na(coefs["dd_regimeRoyal dictatorship"]), coefs["dd_regimeRoyal dictatorship"], 0) * (dd_regime == "Royal dictatorship")) +
+    (ifelse(!is.na(coefs["risk:dd_regimeMixed (semi-presidential) democracy"]), coefs["risk:dd_regimeMixed (semi-presidential) democracy"], 0) * risk * (dd_regime == "Mixed (semi-presidential) democracy")) +
+    (ifelse(!is.na(coefs["risk:dd_regimePresidential democracy"]), coefs["risk:dd_regimePresidential democracy"], 0) * risk * (dd_regime == "Presidential democracy")) +
+    (ifelse(!is.na(coefs["risk:dd_regimeCivilian dictatorship"]), coefs["risk:dd_regimeCivilian dictatorship"], 0) * risk * (dd_regime == "Civilian dictatorship")) +
+    (ifelse(!is.na(coefs["risk:dd_regimeMilitary dictatorship"]), coefs["risk:dd_regimeMilitary dictatorship"], 0) * risk * (dd_regime == "Military dictatorship")) +
+    (ifelse(!is.na(coefs["risk:dd_regimeRoyal dictatorship"]), coefs["risk:dd_regimeRoyal dictatorship"], 0) * risk * (dd_regime == "Royal dictatorship")) +
+    (ifelse(!is.na(coefs["WC"]), coefs["WC"], 0) * WC) +
+    (ifelse(!is.na(coefs["WPS"]), coefs["WPS"], 0) * WPS) +
+    (ifelse(!is.na(coefs["tone_neg"]), coefs["tone_neg"], 0) * tone_neg) +
+    (ifelse(!is.na(coefs["focuspast"]), coefs["focuspast"], 0) * focuspast) +
+    (ifelse(!is.na(coefs["mid_num_dispute"]), coefs["mid_num_dispute"], 0) * mid_num_dispute) +
+    (ifelse(!is.na(coefs["ht_colonial"]), coefs["ht_colonial"], 0) * ht_colonial)
+  )
+  
+  pred_data$Dependent_Var <- dep_var
+  interaction_predictions_year[[dep_var]] <- pred_data
+}
+
+interaction_combined_year <- bind_rows(interaction_predictions_year)
+
+# Visualization for Year FE with `dd_regime`
+interaction_plot_year <- ggplot(interaction_combined_year, aes(x = risk, y = predicted_value, color = dd_regime)) +
+  geom_line(size = 1) +
+  facet_wrap(~ Dependent_Var, scales = "fixed") +   
+  scale_color_grey(start = 0.2, end = 0.8) +  
+  labs(
+    title = "Interaction Effects: Risk and Regime Type (Year Fixed Effects)",
+    subtitle = "Predicted Values by Risk Levels Across Regime Types",
+    x = "Risk Level",
+    y = "Predicted Value",
+    color = "Regime Type",
+    caption = "Models include year fixed effects. Fixed y-axes for comparison."
+  ) +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 14, face = "bold"),
+    plot.subtitle = element_text(size = 12, face = "italic")
+  )
+
+# Display the plot
+print(interaction_plot_year)
+
+```
+
+# 
+```{r}
+library(modelsummary)
+
+# Generate model summaries for Year Fixed Effects
+modelsummary(
+  models_year,
+  output = "html",
+  stars = TRUE,
+  statistic = c("std.error", "p.value"),
+  coef_omit = "(Intercept)",  # Omitting intercept for clarity
+  coef_map = list(
+    "dd_regimeMixed (semi-presidential) democracy" = "Mixed Democracy",
+    "dd_regimePresidential democracy" = "Presidential Democracy",
+    "dd_regimeCivilian dictatorship" = "Civilian Dictatorship",
+    "dd_regimeMilitary dictatorship" = "Military Dictatorship",
+    "dd_regimeRoyal dictatorship" = "Royal Dictatorship",
+    "risk" = "Perceived Risk",
+    "WC" = "Word Count",
+    "WPS" = "Words per Sentence",
+    "tone_neg" = "Negative Tone",
+    "focuspast" = "Focus on Past"
+  ),
+  notes = "Significance codes: *** p < 0.001; ** p < 0.01; * p < 0.05",
+  title = "Year Fixed Effects Models: Impact of Regime Types on Sovereignty Rhetoric"
+)
+
+# Generate model summaries for Two-Way Fixed Effects
+modelsummary(
+  models_twoway,
+  output = "html",
+  stars = TRUE,
+  statistic = c("std.error", "p.value"),
+  coef_omit = "(Intercept)",
+  coef_map = list(
+    "dd_regimeMixed (semi-presidential)" = "Mixed Democracy",
+    "dd_regimePresidential" = "Presidential Democracy",
+    "dd_regimeCivilian" = "Civilian Dictatorship",
+    "dd_regimeMilitary" = "Military Dictatorship",
+    "dd_regimeRoyal" = "Royal Dictatorship",
+    "risk" = "Perceived Risk",
+    "WC" = "Word Count",
+    "WPS" = "Words per Sentence",
+    "tone_neg" = "Negative Tone",
+    "focuspast" = "Focus on Past"
+  ),
+  notes = "Significance codes: *** p < 0.001; ** p < 0.01; * p < 0.05",
+  title = "Two-Way Fixed Effects Models: Impact of Regime Types on Sovereignty Rhetoric"
+)
+
+```
+
+#prediction plot just for year FE
+```{r}
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+
+# Prepare new data for prediction
+regime_levels <- levels(emb$dd_regime)
+# Ensure dd_regime is a factor with proper labels
+emb_filtered$dd_regime <- factor(
+  emb_filtered$dd_regime,
+  levels = c(0, 1, 2, 3, 4, 5),
+  labels = c(
+    "Parliamentary democracy",
+    "Mixed (semi-presidential) democracy",
+    "Presidential democracy",
+    "Civilian dictatorship",
+    "Military dictatorship",
+    "Royal dictatorship"
+  )
+)
+
+
+# Define covariates
+covariates <- c("risk", "WC", "WPS", "tone_neg", "focuspast", "mid_num_dispute", "ht_colonial")
+
+# Loop through dependent variables
+for (dep_var in cosine_vars) {
+  formula_str <- paste(dep_var, "~ dd_regime +", paste(covariates, collapse = " + "))
+  
+  # Fit model with Year FE
+  models_year[[dep_var]] <- plm(
+    as.formula(formula_str), 
+    effect = "time", 
+    model = "within", 
+    index = "year", 
+    data = emb_filtered
+  )
+}
+# Create a grid for prediction with proper factor levels
+prediction_grid <- expand.grid(
+  dd_regime = levels(emb_filtered$dd_regime),
+  risk = 0.5,
+  WC = 2602,
+  WPS = 29,
+  tone_neg = 0.5,
+  focuspast = 0.2,
+  mid_num_dispute = 1,
+  ht_colonial = 1,
+  year = 2020
+)
+
+
+# Convert dd_regime to factor with the same levels as in the data
+prediction_grid$dd_regime <- factor(
+  prediction_grid$dd_regime,
+  levels = levels(emb_filtered$dd_regime)
+)
+
+# Convert to panel data frame for plm
+prediction_grid <- pdata.frame(prediction_grid, index = "year")
+# Generate predictions
+predictions_list <- list()
+
+for (dep_var in cosine_vars) {
+  pred_data <- prediction_grid
+  pred_data$predicted_value <- predict(models_year[[dep_var]], newdata = pred_data)
+  pred_data$Dependent_Var <- dep_var
+  predictions_list[[dep_var]] <- pred_data
+}
+
+predictions_combined_clean <- as.data.frame(predictions_combined)
+
+
+# Combine predictions into one data frame
+predictions_combined <- bind_rows(predictions_list)
+library(ggplot2)
+
+plot_predictions <- predictions_combined_clean %>%
+  ggplot(aes(x = dd_regime, y = predicted_value, fill = Dependent_Var)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.7)) +
+  labs(
+    title = "Predicted Values by Regime Type (Year Fixed Effects)",
+    x = "Regime Type",
+    y = "Predicted Value",
+    fill = "Dependent Variable"
+  ) +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "bottom",
+    strip.text = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+print(plot_predictions)
+
+```
