@@ -145,6 +145,7 @@ for (var in unique_variables) {
 models_year <- list()
 models_twoway <- list()
 
+
 covariates <- c("risk", "WC", "WPS", "tone_neg", "focuspast", "mid_num_dispute", "ht_colonial")
 emb$dd_regime <- as.factor(emb$dd_regime)
 
@@ -206,22 +207,7 @@ library(dplyr)
 library(broom)
 library(modelsummary)
 
-# Create labels for the independent variables
-covariates_labels <- c(
-  "risk" = "Perceived Risk",
-  "WC" = "Word Count",
-  "WPS" = "Words per Sentence",
-  "tone_neg" = "Negative Tone",
-  "focuspast" = "Focus on Past",
-  "mid_num_dispute" = "MID Disputes",
-  "ht_colonial" = "Colonial History",
-  "dd_regime1" = "Mixed Democracy",
-  "dd_regime2" = "Presidential Democracy",
-  "dd_regime3" = "Civilian Dictatorship",
-  "dd_regime4" = "Military Dictatorship",
-  "dd_regime5" = "Royal Dictatorship"
-)
-# Prepare data for `models_year`
+
 
 model_results_year <- lapply(seq_along(models_year), function(i) {
   tidy(models_year[[i]]) %>%
@@ -229,12 +215,26 @@ model_results_year <- lapply(seq_along(models_year), function(i) {
 }) %>%
   bind_rows()
 
-# Prepare data for `models_twoway`
-model_results_twoway <- lapply(seq_along(models_twoway), function(i) {
-  tidy(models_twoway[[i]]) %>%
-    mutate(`Dependent Variable` = names(models_twoway)[i], model = "Two-Way Fixed Effects")
-}) %>%
-  bind_rows()
+model_results_year <- model_results_year %>%
+  mutate(term = str_remove(term, "dd_regime"))
+
+model_results_year <- model_results_year %>%
+  mutate(term = case_when(
+    term == "risk" ~ "Risk",
+    term == "WC" ~ "Word Count",
+    term == "WPS" ~ "Words Per Sentence",
+    term == "tone_neg" ~ "Negative Tone",
+    term == "Mixed (semi-presidential) democracy" ~ "Mixed Democracy",
+    term == "Presidential democracy" ~ "Presidential Democracy",
+    term == "Civilian dictatorship" ~ "Civilian Dictatorship",
+    term == "Military dictatorship" ~ "Military Dictatorship",
+    term == "Royal dictatorship" ~ "Royal Dictatorship",
+    term == "focuspast" ~ "Focus Past",
+    term == "mid_num_dispute" ~ "Number of Disputes",
+    term == "ht_colonial" ~ "Colonial",
+    TRUE ~ term
+  ))
+
 
 # Define different shapes for dependent variables
 shape_mapping <- c(
@@ -243,7 +243,25 @@ shape_mapping <- c(
   "sovereignty_westphalia" = 19
 )
 
-# Plot for `models_year`
+custom_order <- c(
+  "Risk",
+  "Number of Disputes",
+  "Colonial",
+  "Focus Past",
+  "Word Count",
+  "Words Per Sentence",
+  "Negative Tone",
+  "Mixed Democracy",
+  "Presidential Democracy",
+  "Civilian Dictatorship",
+  "Military Dictatorship",
+  "Royal Dictatorship"
+)
+
+model_results_year <- model_results_year %>%
+  mutate(term = factor(term, levels = custom_order))
+
+
 plot_year <- model_results_year %>%
   ggplot(aes(x = term, y = estimate, shape = `Dependent Variable`)) +
   geom_point(position = position_dodge(width = 0.5), size = 3) +
@@ -268,32 +286,7 @@ plot_year <- model_results_year %>%
   ) +
   scale_shape_manual(values = shape_mapping)
 
-# Plot for `models_twoway`
-plot_twoway <- model_results_twoway %>%
-  ggplot(aes(x = term, y = estimate, shape = `Dependent Variable`)) +
-  geom_point(position = position_dodge(width = 0.5), size = 3) +
-  geom_errorbar(aes(ymin = estimate - 1.96 * std.error, ymax = estimate + 1.96 * std.error),
-                width = 0.3, position = position_dodge(width = 0.5)) +
-  ylim(-0.01, 0.01) +
-  labs(
-    title = "Coefficients for Semantic Distance",
-    subtitle = "Estimated coefficients with 95% confidence intervals",
-    x = "Independent Variables",
-    y = "Coefficient Estimate",
-    caption = "Note: Models include two-way fixed effects."
-  ) +
-  theme_minimal(base_family = "Times New Roman") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
-    axis.title = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12),
-    plot.title = element_text(size = 16, face = "bold"),
-    plot.subtitle = element_text(size = 14, face = "italic")
-  ) +
-  scale_shape_manual(values = shape_mapping)
 
-# Save the plots as PNG files
 ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/coefficients_year_shapes.png", plot_year, width = 10, height = 6, dpi = 300)
 ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/coefficients_twoway_shapes.png", plot_twoway, width = 10, height = 6, dpi = 300)
 
@@ -301,98 +294,6 @@ ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/coefficients_twoway_shape
 print(plot_year)
 print(plot_twoway)
 
-
-```
-
-
-# interaction term risk * dd_regime
-```{r}
-# Interaction Effect Analysis with Year Fixed Effects and Categorical `dd_regime`
-interaction_models_year <- list()
-
-for (dep_var in cosine_vars) {
-  formula <- as.formula(paste(dep_var, "~ risk * dd_regime + WC + WPS + tone_neg + focuspast + mid_num_dispute + ht_colonial"))
-  
-  interaction_models_year[[dep_var]] <- plm(
-    formula,
-    data = emb,
-    model = "within",
-    effect = "time",
-    index = "year"
-  )
-}
-
-# Generate Predictions for Interaction Visualization (Year FE)
-interaction_predictions_year <- list()
-
-# Define levels for `dd_regime`
-regime_levels <- levels(as.factor(emb$dd_regime))
-
-for (dep_var in cosine_vars) {
-  model <- interaction_models_year[[dep_var]]
-  coefs <- coef(model)
-  
-  pred_data <- expand.grid(
-    risk = seq(0, 1, length.out = 5),  # Different levels of `risk`
-    dd_regime = regime_levels,         # Categorical levels of `dd_regime`
-    WC = 2602,
-    WPS = 29,
-    tone_neg = 0.5,
-    focuspast = 0.2,
-    mid_num_dispute = 1,
-    ht_colonial = 1
-  )
-  
-  # Compute predicted values based on coefficients
-  pred_data$predicted_value <- with(pred_data, 
-    (ifelse(!is.na(coefs["(Intercept)"]), coefs["(Intercept)"], 0)) +
-    (ifelse(!is.na(coefs["risk"]), coefs["risk"], 0) * risk) +
-    (ifelse(!is.na(coefs["dd_regimeMixed (semi-presidential) democracy"]), coefs["dd_regimeMixed (semi-presidential) democracy"], 0) * (dd_regime == "Mixed (semi-presidential) democracy")) +
-    (ifelse(!is.na(coefs["dd_regimePresidential democracy"]), coefs["dd_regimePresidential democracy"], 0) * (dd_regime == "Presidential democracy")) +
-    (ifelse(!is.na(coefs["dd_regimeCivilian dictatorship"]), coefs["dd_regimeCivilian dictatorship"], 0) * (dd_regime == "Civilian dictatorship")) +
-    (ifelse(!is.na(coefs["dd_regimeMilitary dictatorship"]), coefs["dd_regimeMilitary dictatorship"], 0) * (dd_regime == "Military dictatorship")) +
-    (ifelse(!is.na(coefs["dd_regimeRoyal dictatorship"]), coefs["dd_regimeRoyal dictatorship"], 0) * (dd_regime == "Royal dictatorship")) +
-    (ifelse(!is.na(coefs["risk:dd_regimeMixed (semi-presidential) democracy"]), coefs["risk:dd_regimeMixed (semi-presidential) democracy"], 0) * risk * (dd_regime == "Mixed (semi-presidential) democracy")) +
-    (ifelse(!is.na(coefs["risk:dd_regimePresidential democracy"]), coefs["risk:dd_regimePresidential democracy"], 0) * risk * (dd_regime == "Presidential democracy")) +
-    (ifelse(!is.na(coefs["risk:dd_regimeCivilian dictatorship"]), coefs["risk:dd_regimeCivilian dictatorship"], 0) * risk * (dd_regime == "Civilian dictatorship")) +
-    (ifelse(!is.na(coefs["risk:dd_regimeMilitary dictatorship"]), coefs["risk:dd_regimeMilitary dictatorship"], 0) * risk * (dd_regime == "Military dictatorship")) +
-    (ifelse(!is.na(coefs["risk:dd_regimeRoyal dictatorship"]), coefs["risk:dd_regimeRoyal dictatorship"], 0) * risk * (dd_regime == "Royal dictatorship")) +
-    (ifelse(!is.na(coefs["WC"]), coefs["WC"], 0) * WC) +
-    (ifelse(!is.na(coefs["WPS"]), coefs["WPS"], 0) * WPS) +
-    (ifelse(!is.na(coefs["tone_neg"]), coefs["tone_neg"], 0) * tone_neg) +
-    (ifelse(!is.na(coefs["focuspast"]), coefs["focuspast"], 0) * focuspast) +
-    (ifelse(!is.na(coefs["mid_num_dispute"]), coefs["mid_num_dispute"], 0) * mid_num_dispute) +
-    (ifelse(!is.na(coefs["ht_colonial"]), coefs["ht_colonial"], 0) * ht_colonial)
-  )
-  
-  pred_data$Dependent_Var <- dep_var
-  interaction_predictions_year[[dep_var]] <- pred_data
-}
-
-interaction_combined_year <- bind_rows(interaction_predictions_year)
-
-# Visualization for Year FE with `dd_regime`
-interaction_plot_year <- ggplot(interaction_combined_year, aes(x = risk, y = predicted_value, color = dd_regime)) +
-  geom_line(size = 1) +
-  facet_wrap(~ Dependent_Var, scales = "fixed") +   
-  scale_color_grey(start = 0.2, end = 0.8) +  
-  labs(
-    title = "Interaction Effects: Risk and Regime Type (Year Fixed Effects)",
-    subtitle = "Predicted Values by Risk Levels Across Regime Types",
-    x = "Risk Level",
-    y = "Predicted Value",
-    color = "Regime Type",
-    caption = "Models include year fixed effects. Fixed y-axes for comparison."
-  ) +
-  theme_minimal(base_family = "Times New Roman") +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1),
-    plot.title = element_text(size = 14, face = "bold"),
-    plot.subtitle = element_text(size = 12, face = "italic")
-  )
-
-# Display the plot
-print(interaction_plot_year)
 
 ```
 
@@ -417,7 +318,9 @@ modelsummary(
     "WC" = "Word Count",
     "WPS" = "Words per Sentence",
     "tone_neg" = "Negative Tone",
-    "focuspast" = "Focus on Past"
+    "focuspast" = "Focus on Past",
+    "mid_num_dispute" = "Disputes",
+    "ht_colonial" = "Colonial"
   ),
   notes = "Significance codes: *** p < 0.001; ** p < 0.01; * p < 0.05",
   title = "Year Fixed Effects Models: Impact of Regime Types on Sovereignty Rhetoric"
@@ -545,4 +448,113 @@ plot_predictions <- predictions_combined_clean %>%
 
 print(plot_predictions)
 
+```
+
+#additional tests for h3
+```{r}
+library(dplyr)
+library(stringr)  # Ensure str_count is available
+library(plm)
+library(ggplot2)
+library(broom)
+
+# Step 1: Create Sovereignty Mentions
+emb <- emb %>%
+  mutate(sovereignty_mentions = str_count(text, "\\bsovereignty\\b")) %>%
+  mutate(sovereignty_freq = (sovereignty_mentions/WC)*100)
+
+
+sovereignty_tallies <- emb %>%
+  dplyr::group_by(ccode_iso, year, as.factor(dd_regime)) %>%
+  dplyr::summarise(
+    total_mentions = mean(sovereignty_freq, na.rm = FALSE),
+    avg_risk = mean(risk, na.rm = FALSE),
+    avg_mid_num_dispute = mean(mid_num_dispute, na.rm = FALSE),
+    colonial = mean(ht_colonial, na.rm = FALSE),
+    WC = mean(WC, na.rm = FALSE),
+    WPS = mean(WPS, na.rm = FALSE),
+    tone_neg = mean(tone_neg, na.rm = FALSE)
+  ) %>%
+  ungroup() 
+
+
+# Step 4: Convert to Panel Data Frame
+sovereignty_tallies <- pdata.frame(sovereignty_tallies, index = c("ccode_iso", "year"))
+
+
+# Step 5: Fit a Regression Model with Year Fixed Effects
+fe_model <- plm(
+  total_mentions ~ avg_risk * as.factor.dd_regime. +
+    avg_mid_num_dispute + colonial + WC + WPS + tone_neg,
+  data = sovereignty_tallies,
+  model = "within",                    
+  effect = "time"                
+)
+
+
+summary(fe_model)
+
+
+modelsummary(
+  fe_model, 
+  output = "html", 
+  stars = TRUE
+)
+
+coefficients_data <- tidy(fe_model) %>%
+  filter(term != "(Intercept)")  
+
+# Calculate total effects by regime type
+total_effects_country_year <- coefficients_data %>%
+  filter(grepl("avg_risk", term)) %>%
+  mutate(
+    regime_type = case_when(
+      term == "avg_risk" ~ "Parliamentary Democracy",
+      term == "avg_risk:as.factor.dd_regime.1" ~ "Mixed Democracy",
+      term == "avg_risk:as.factor.dd_regime.2" ~ "Presidential Democracy",
+      term == "avg_risk:as.factor.dd_regime.3" ~ "Civilian Dictatorship",
+      term == "avg_risk:as.factor.dd_regime.4" ~ "Military Dictatorship",
+      term == "avg_risk:as.factor.dd_regime.5" ~ "Royal Dictatorship"
+    ),
+    total_effect = case_when(
+      term == "avg_risk" ~ estimate,
+      TRUE ~ estimate + coefficients_data$estimate[coefficients_data$term == "avg_risk"]
+    ),
+    lower_ci = total_effect - 1.96 * std.error,
+    upper_ci = total_effect + 1.96 * std.error
+  )
+
+# Reorder the regime_type factor based on the desired order
+total_effects_country_year$regime_type <- factor(
+  total_effects_country_year$regime_type,
+  levels = c(
+    "Parliamentary Democracy",
+    "Mixed Democracy",
+    "Presidential Democracy",
+    "Civilian Dictatorship",
+    "Military Dictatorship",
+    "Royal Dictatorship"
+  )
+)
+
+# Replot with the corrected order
+interaction_plot <- ggplot(total_effects_country_year, aes(x = regime_type, y = total_effect)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2) +
+  labs(
+    title = "Total Effect of Risk on Sovereignty Mentions by Regime Type",
+    x = "Regime Type",
+    y = "Total Effect",
+    caption = "Error bars indicate 95% confidence intervals."
+  ) +
+  theme_minimal(base_family = "Times New Roman") +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    plot.title = element_text(size = 14, face = "bold")
+  )
+
+
+ggsave( "~/Desktop/UNGDC/script/exploratory/static/plot/interaction_regime_risk.png", interaction_plot,
+    width = 10,
+    height = 6)
 ```
