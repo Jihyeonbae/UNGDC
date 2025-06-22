@@ -31,7 +31,7 @@ toks_nostop_feats <- tokens_select(toks_nostop, feats, padding = TRUE)
 
 
 sov_tokens <- tokens_context(x = toks_nostop_feats, pattern = "soverei*", window = 10L)
-sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$dd_regime), ]
+sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$democracy), ]
 
 head(docvars(sov_tokens),3)
 
@@ -49,7 +49,7 @@ sov_wv <- matrix(colMeans(sov_dem), ncol = ncol(sov_dem)) %>%
   `rownames<-`("sovereignty")
 
 sov_wv_regime <- dem_group(sov_dem,
-                           groups = sov_dem@docvars$dd_regime)
+                           groups = sov_dem@docvars$democracy)
 
 nns(sov_wv, pre_trained = glove, N = 25, candidates = sov_wv_regime@features, stem =FALSE, as_list = FALSE)
 ```
@@ -60,12 +60,12 @@ feats <- featnames(dfm(sov_tokens))
 
 set.seed(2024)
 
-sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$dd_regime), ]
+sov_tokens <- sov_tokens[!is.na(docvars(sov_tokens)$democracy), ]
 
 
 sov_regime_nns <- get_nns(x = sov_tokens, N = 20,
                           groups = (docvars(sov_tokens, 
-                                          'dd_regime')),
+                                          'democracy')),
                           candidates = feats,
                           pre_trained = glove,
                           transform = TRUE,
@@ -77,7 +77,6 @@ sov_regime_nns <- get_nns(x = sov_tokens, N = 20,
                           )
 sov_regime_nns[["0"]]
 sov_regime_nns[["1"]] 
-sov_regime_nns[["5"]] #full dic
 
 
 ```
@@ -86,8 +85,8 @@ sov_regime_nns[["5"]] #full dic
 # compute the cosine similarity between each group's embedding and a specific set of features
 set.seed(2024)
 get_cos_sim(x = sov_tokens,
-            groups = docvars(sov_tokens, 'dd_regime'),
-            features = c("right", "security", "border", "independence"),
+            groups = docvars(sov_tokens, 'democracy'),
+            features = c("intervene", "interfere", "right", "security", "border", "independence"),
             pre_trained = glove,
             transform = TRUE,
             transform_matrix = cr_transform,
@@ -135,7 +134,7 @@ sov_nns_stem <- nns(sov_wv_regime, pre_trained = glove, N = 5, candidates = feat
 #regression
 ```{r}
 set.seed(2024)
-model1 <- conText(formula =  . ~ dd_regime,
+model1 <- conText(formula =  . ~ democracy,
                   data = toks_nostop_feats,
                   pre_trained = glove,
                   transform = TRUE, transform_matrix = cr_transform,
