@@ -6,12 +6,14 @@
 
 # Load packages and custom functions --------------------------------------
 
-source(here::here("script/exploratory/static/00-func.R"))
+source(here::here("~/Desktop/UNGDC/script/exploratory/static/00-func.R"))
 
+
+meta <- read_csv("data/processed/meta.csv")
 
 # Load dictionaries & speeches --------------------------------------------
 
-load(here("data/processed/sentence.Rdata"))
+load(here("~/Desktop/UNGDC/data/processed/sentence.Rdata"))
 
 # Extract dictionary counts -----------------------------------------------
 
@@ -22,8 +24,8 @@ dic_counts <- mftPercent(meta)
 set.seed(42)
 
 sov_percentage <- dic_counts %>%
-  group_by(dd_regime) %>%
-  summarize(sovereignty = mean(sovereignty),
+  dplyr::group_by(dd_regime) %>%
+  dplyr::summarize(sovereignty = mean(sovereignty),
             cilo = quantile(sovereignty, probs = .025),
             cihi = quantile(sovereignty, probs = .975)) %>%
   ggplot(aes(x = dd_regime, y = sovereignty, 
@@ -84,11 +86,11 @@ combined_plot <- dic_counts_long %>%
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, size = 14, face = "bold", family = "serif"),
-    axis.title.x = element_text(size = 12, family = "serif"),
-    axis.title.y = element_text(size = 12, family = "serif"),
-    axis.text = element_text(size = 10, family = "serif"),
-    legend.title = element_text(size = 12, face = "bold", family = "serif"),
-    legend.text = element_text(size = 10, family = "serif"),
+    axis.title.x = element_text(size = 14, family = "serif"),
+    axis.title.y = element_text(size = 14, family = "serif"),
+    axis.text = element_text(size = 13, family = "serif"),
+    legend.title = element_text(size = 14, face = "bold", family = "serif"),
+    legend.text = element_text(size = 16, family = "serif"),
     panel.grid.major = element_line(size = 0.5, linetype = 'dashed', colour = "grey"),
     panel.grid.minor = element_blank(),
     strip.text = element_text(size = 14, face = "bold", family = "serif"), 
@@ -96,12 +98,12 @@ combined_plot <- dic_counts_long %>%
     panel.background = element_rect(fill = "white"),
     plot.background = element_rect(fill = "white")
     ) +
-  facet_wrap(~variable, scales = "free_y", labeller = labeller(variable = c(sovereignty = "Sovereignty", rights = "Rights", trade = "Trade")))+
+  facet_wrap(~variable, scales = "free_y", labeller = labeller(variable = c(sovereignty = "Sovereignty", rights = "Human Rights", trade = "Trade")))+
   theme(legend.position = "bottom")
 
 print(combined_plot)
 
-ggsave("plot/combined_plot.png", plot = combined_plot, width = 12, height = 8, dpi = 300)
+ggsave("~/Desktop/UNGDC/script/paper_chapter2/plot/combined_plot.png", plot = combined_plot, width = 12, height = 8, dpi = 300)
 
 # sixfold regime type-----------------------
 

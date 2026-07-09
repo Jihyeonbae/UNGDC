@@ -5,7 +5,8 @@
 library(tidyverse)
 library(dplyr)
 library(tidyr)
-ungdc <- read.csv("data/cleaned.csv")
+ungdc <- read_csv("~/Desktop/UNGDC/data/processed/cleaned.csv")
+View(ungdc)
 library(quanteda)
 
 ## make a corpus of the Texts

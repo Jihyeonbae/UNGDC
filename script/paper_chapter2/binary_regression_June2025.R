@@ -9,13 +9,34 @@ library(stringr)
 # this data is about "DISTANCE"=1-cosine similarity. 
 emb <- read_csv("~/Downloads/liwc_meta_with_keyword_distances_June2025.csv")
 
-top5_interfere <- emb %>%
-  dplyr::ungroup() %>%
-  dplyr::arrange(distance_sovereignty_interfere_cosine) %>%  # smallest distance = closest meaning
-  #dplyr::slice(1:20) %>%
-  dplyr::select(ccode_iso, year, distance_sovereignty_interfere_cosine, text)
+percentile_table <- emb %>%
+  dplyr::mutate(percentile = percent_rank(distance_sovereignty_interfere_cosine) * 100) %>%
+  slice_min(percentile, n = 5)
 
-cat(top5_interfere$text[1])
+
+top_interfere_myanmar_cambodia <- percentile_table %>%
+  ungroup() %>%
+  filter(ccode_iso %in% c("MMR", "KHM")) %>%  # ISO3 codes for Myanmar and Cambodia
+  arrange(distance_sovereignty_interfere_cosine) %>%  # closest = smallest distance
+  select(ccode_iso, year, percentile, distance_sovereignty_interfere_cosine, text)
+
+# View the top 5 closest excerpts for each
+top_interfere_myanmar <- top_interfere_myanmar_cambodia %>%
+  filter(ccode_iso == "MMR") %>%
+  slice_min(distance_sovereignty_interfere_cosine, n = 5)
+
+top_interfere_cambodia <- top_interfere_myanmar_cambodia %>%
+  filter(ccode_iso == "KHM") %>%
+  slice_min(distance_sovereignty_interfere_cosine, n = 5)
+
+top5_usa <- emb %>%
+  ungroup() %>%
+  filter(ccode_iso == "USA") %>%
+  slice_max(order_by = distance_sovereignty_interfere_cosine, n = 5, with_ties = FALSE) %>%
+  select(ccode_iso, year, distance_sovereignty_interfere_cosine, text)
+
+cat(top_interfere_cambodia$text, sep = "\n\n")
+
 
 
 # Clean column names and apply log if appropriate
@@ -39,18 +60,6 @@ emb <- emb %>%
 # Create binary democracy variable
 emb <- emb %>%
   dplyr::mutate(democracy = ifelse(v2x_polyarchy >= 0.5, 1, 0))
-
-
-### find excerpt
-top5_distant <- emb %>%
-  ungroup() %>%
-  arrange(sovereignty_territory_cosine) %>%
-  slice(1:5) %>%
-  select(ccode_iso, year, sovereignty_territory_cosine, text)
-
-
-print(top5_distant)
-write_csv(top5_distant, "~/Desktop/top5_territory_distance.csv")
 
 
 # Run year fixed effects regression
@@ -158,13 +167,13 @@ modelsummary(
 # Extract & combine tidy model results
 plot_data2 <- lapply(names(models_year), function(name) {
   tidy(models_year[[name]]) %>%
-    mutate(`Dependent Variable` = name)
+    dplyr::mutate(`Dependent Variable` = name)
 }) %>% bind_rows()
 
 # Filter to key IV and relabel
 plot_data2 <- plot_data2 %>%
   filter(term != "(Intercept)") %>%
-  mutate(
+  dplyr::mutate(
     term = case_when(
       term == "democracy" ~ "Democracy",
       term == "risk" ~ "Perceived Risk",
@@ -180,11 +189,11 @@ plot_data2 <- plot_data2 %>%
     ),
     `Dependent Variable` = str_remove(`Dependent Variable`, "_z"),
     `Dependent Variable` = case_when(
-      `Dependent Variable` == "sovereignty_territory" ~ "Territory",
-      `Dependent Variable` == "sovereignty_colonial" ~ "Colonial",
-      `Dependent Variable` == "sovereignty_westphalia" ~ "Westphalia",
-      `Dependent Variable` == "sovereignty_intervene" ~ "Intervene",
-      `Dependent Variable` == "sovereignty_interfere" ~ "Interfere",
+      `Dependent Variable` == "sovereignty_territory_cosine" ~ "Territory",
+      `Dependent Variable` == "sovereignty_colonial_cosine" ~ "Colonial",
+      `Dependent Variable` == "sovereignty_westphalia_cosine" ~ "Westphalia",
+      `Dependent Variable` == "sovereignty_intervene_cosine" ~ "Intervene",
+      `Dependent Variable` == "sovereignty_interfere_cosine" ~ "Interfere",
       TRUE ~ `Dependent Variable`
     )
   )
@@ -220,7 +229,7 @@ ggplot(plot_data2, aes(x = term, y = estimate, shape = `Dependent Variable`)) +
   ) +
   scale_shape_manual(values = c(17, 18, 19, 21, 22))
 
-ggsave("~/Desktop/UNGDC/script/exploratory/static/plot/democracy_binary_plot_ver2.png",
+ggsave("~/Desktop/UNGDC/script/paper_chapter2/plot/binary_plot_no_numeric.png",
        width = 10, height = 6, dpi = 300)
 
 
