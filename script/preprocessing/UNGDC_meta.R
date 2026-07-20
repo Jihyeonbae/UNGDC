@@ -8,20 +8,30 @@ library(dplyr)
 library(tidyverse)
 library(countrycode)
 
-cleaned<-readRDS("data/processed/cleaned.RDS")
+cleaned<-read_csv("~/Desktop/UNGDC/data/processed/cleaned.csv") %>%
+  select(-`...1`)
+
+main <- readRDS("~/Downloads/main_updated_May_2026 (1).rds")
+library(haven)
+monadic <- read_dta("~/Desktop/Replication Files/monadic.dta")
+
+monadic <- monadic %>%
+  select(year, ccode, locationconflict, 
+         fariss_hr = theta_mean, 
+         hro_counts = hrcountfilled, 
+         lnhrcountfilled, 
+         shaming = NEWHROshamingnowikiDULAP)
 
 
-country <- read_csv("~/Desktop/UNGDC/data/interim/controls.csv")
-country<-country%>%select(-...1)
+
+country_controls<- main%>%
+  left_join(monadic, by=c("ccode", "year"))
 
 
-country_controls <- country %>%
-  mutate(ccode_iso= countrycode(ccode, origin = 'cown',
-                                destination = 'iso3c'))
-
-
-meta<-cleaned%>%
-  left_join(country_controls, by=c("year","ccode_iso"))
+meta <- cleaned %>%
+  mutate(ccode_iso = as.character(ccode_iso)) %>%
+  left_join(country_controls %>% mutate(ccode = as.character(ccode)),
+            by = c("year", "ccode_iso" = "ccode"))
 
 write_csv(meta, "data/interim/UNGDC_meta.csv")
 
