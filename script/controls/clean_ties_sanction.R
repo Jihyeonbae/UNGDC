@@ -4,59 +4,65 @@ library(readxl)
 library(stringr)
 library(countrycode)
 
-ties <- read_excel("~/Downloads/TIESv4-1.xls", col_types = "text")
+library(haven)
+gsdb <- read_dta("~/Downloads/gsdb_v4/GSDB_V4_dyadic.dta")
 
-ties <- ties %>%
-  mutate(across(c(startyear, endyear, targetstate, dsanctions), as.numeric))
-
-ties <- ties%>%
-  select(startyear, endyear, targetstate, threatenedtargetinterest,
-         dsanctions) %>%  
-  rename(cow = targetstate) 
-
-ties <- ties%>%
-  mutate(ccode_iso = countrycode(cow, "cown", "iso3c")) 
-
-ties <- ties %>%
-  mutate(ccode_iso = countrycode(cow, "cown", "iso3c",
-                                 custom_match = c(`260` = "DEU", 
-                                                  `265` = "DDR",   # pre-unification Germany
-                                                  `315` = "CSK",                  # Czechoslovakia 
-                                                  `345` = "YUG",                  # Yugoslavia 
-                                                  `680` = "YMD",                  # South Yemen 
-                                                  `817` = "VNM")))                # South Vietnam 
+gsdb <- gsdb%>%
+  select(target = sanctioned_state_iso3,
+         sender = sanctioning_state_iso3,
+         year, objective, arms, military, trade, financial, travel) %>%
+  filter(!is.na(target))
 
 
-# i need to parse the multi-value interest string into dummies
-interest_labels <- c("1"="general","2"="regime_leadership","3"="business",
-                     "4"="political","5"="military","6"="other")
 
-ties <- ties %>%
-  mutate(interest_codes = str_split(as.character(threatenedtargetinterest), "\\s+"))
-
-for (code in names(interest_labels)) {
-  ties[[paste0("interest_", interest_labels[[code]])]] <-
-    map_lgl(ties$interest_codes, ~ code %in% .x)
-}
-
-# expand to one row per active year
-ties_long <- ties %>%
-  mutate(endyear = if_else(is.na(endyear) | endyear < startyear, startyear, endyear)) %>%
-  rowwise() %>%
-  mutate(year = list(startyear:endyear)) %>%
-  ungroup() %>%
-  unnest(year)
-
-ties_long<- ties_long %>%
-  select(ccode_iso, year, dsanctions, interest_general, interest_regime_leadership, interest_business, interest_political, interest_military, interest_other )
-
-# collapse to target-country-year
-ties_cy <- ties_long %>%
-  group_by(ccode_iso, year) %>%
+gsdb_cy <- gsdb %>%
+  group_by(target, year) %>%
   summarise(
-    n_episodes        = n(),
-    sanctioned        = as.integer(n_episodes > 0),
-    sanctions_imposed = if (all(is.na(dsanctions))) NA_real_ else max(dsanctions, na.rm = TRUE),
-    across(starts_with("interest_"), ~ as.integer(any(.x))),
+    n_senders  = n_distinct(sender),                       # how many countries sanctioning that year
+    sanctioned = 1L,                                         # every row here is a sanction by construction
+    arms       = as.integer(any(arms == 1)),
+    military   = as.integer(any(military == 1)),
+    trade      = as.integer(any(trade == 1)),
+    financial  = as.integer(any(financial == 1)),
+    travel     = as.integer(any(travel == 1)),
+    objectives = paste(unique(unlist(str_split(objective, ","))), collapse = ";"),
     .groups = "drop"
-  )
+  ) %>%
+  mutate(n_types = arms + military + trade + financial + travel)  # breadth of sanction types = simple intensity proxy
+
+library(tidyr)
+
+# one row per target-sender-year-objective
+gsdb_long <- gsdb %>%
+  mutate(objective = str_split(objective, ",")) %>%
+  unnest(objective) %>%
+  mutate(objective = str_trim(objective))
+
+# one dummy column per distinct objective type actually observed in the data
+gsdb_obj <- gsdb_long %>%
+  distinct(target, year, objective) %>%
+  mutate(present = 1L) %>%
+  pivot_wider(names_from = objective, values_from = present,
+              values_fill = 0, names_prefix = "obj_")
+
+gsdb_cy <- gsdb_cy %>%
+  left_join(gsdb_obj, by = c("target", "year"))
+
+
+
+# full target x year grid so gaps become explicit rows
+all_targets <- unique(gsdb_cy$target)
+all_years   <- min(gsdb$year):max(gsdb$year)
+
+gsdb_cy_full <- expand_grid(target = all_targets, year = all_years) %>%
+  left_join(gsdb_cy, by = c("target", "year"))
+
+gsdb_cols <- setdiff(names(gsdb_cy), c("target", "year", "objectives"))
+
+gsdb_cy_full <- gsdb_cy_full %>%
+  mutate(across(all_of(gsdb_cols), ~ replace_na(.x, 0)))
+
+gsdb_cy_full <- gsdb_cy_full %>%
+  filter(!is.na(target))
+
+write_rds(gsdb_cy_full, "~/Desktop/sanction.rds")
